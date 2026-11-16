@@ -386,9 +386,39 @@ create policy "Anyone can update boats"
           : null;
       }
 
+      function dateTimestamp(value) {
+        if (!value) return null;
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
+      }
+
+      function sortTrack(track) {
+        return track.slice().sort((a, b) => {
+          const aDate = dateTimestamp(a?.date);
+          const bDate = dateTimestamp(b?.date);
+          if (aDate === bDate) return 0;
+          if (aDate == null) return -1;
+          if (bDate == null) return 1;
+          return aDate - bDate;
+        });
+      }
+
+      function withCurrentTrackLocation(boat) {
+        const track = sortTrack(Array.isArray(boat.track) ? boat.track : []);
+        const latest = track.at(-1);
+        if (!latest) return { ...boat, track };
+        return {
+          ...boat,
+          track,
+          location: latest.location || boat.location,
+          lat: latest.lat ?? boat.lat,
+          lon: latest.lon ?? boat.lon
+        };
+      }
+
       function dateLabel(value) {
         if (!value) return "Date unknown";
-        const parsed = new Date(`${value}T00:00:00`);
+        const parsed = new Date(value.length === 10 ? `${value}T00:00:00` : value);
         return Number.isNaN(parsed.getTime()) ? "Date unknown" : parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
       }
 
@@ -472,7 +502,7 @@ create policy "Anyone can update boats"
         els.profile.style.display = "block";
         els.profileClose.hidden = false;
         const owners = Array.isArray(boat.owners) ? boat.owners : [];
-        const track = Array.isArray(boat.track) ? boat.track : [];
+        const track = sortTrack(Array.isArray(boat.track) ? boat.track : []);
         const checked = selectedTracks.has(boat.id) ? "checked" : "";
         els.profile.innerHTML = `
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
@@ -499,6 +529,8 @@ create policy "Anyone can update boats"
           if (event.target.checked) selectedTracks.add(boat.id);
           else selectedTracks.delete(boat.id);
           renderTracks();
+          const line = tracksById.get(boat.id);
+          if (event.target.checked && line) map.fitBounds(line.getBounds(), { padding: [40, 40], maxZoom: 12 });
         });
       }
 
@@ -530,11 +562,11 @@ create policy "Anyone can update boats"
         for (const id of selectedTracks) {
           const boat = boats.find(item => item.id === id);
           if (!boat) continue;
-          const points = (Array.isArray(boat.track) ? boat.track : [])
+          const points = sortTrack(Array.isArray(boat.track) ? boat.track : [])
             .map(coordinatePair)
             .filter(point => point !== null);
           if (points.length < 2) continue;
-          const line = L.polyline(points, { color: colorFor(boat), weight: 3, opacity: .8, dashArray: "7 6" }).addTo(map);
+          const line = L.polyline(points, { color: "#e53935", weight: 5, opacity: .95 }).addTo(map);
           line.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong> · movement path`);
           tracksById.set(id, line);
         }
@@ -576,7 +608,7 @@ create policy "Anyone can update boats"
         try {
           const { data, error } = await client.from("boats").select("*").order("name");
           if (error) throw error;
-          boats = (data || []).map(boat => ({
+          boats = (data || []).map(boat => withCurrentTrackLocation({
             ...boat,
             owners: readJsonList(boat.owners),
             track: readJsonList(boat.track)
@@ -627,8 +659,10 @@ create policy "Anyone can update boats"
           if (lastOwner && !lastOwner.to) lastOwner.to = date;
           owners.push({ name: ownerName, from: date, to: null });
         }
-        const track = existing ? existing.track.slice() : [];
+        const track = sortTrack(existing ? existing.track : []);
         track.push({ location, lat, lon, date });
+        const orderedTrack = sortTrack(track);
+        const currentLocation = orderedTrack.at(-1);
         const record = {
           ...(existing || {}),
           name,
@@ -637,11 +671,11 @@ create policy "Anyone can update boats"
           ns_sail_number: nsSailNumber,
           mg_sail_number: mgSailNumber,
           hull_type: hull,
-          location,
-          lat,
-          lon,
+          location: currentLocation.location,
+          lat: currentLocation.lat,
+          lon: currentLocation.lon,
           owners,
-          track,
+          track: orderedTrack,
           updated_at: new Date().toISOString()
         };
         els.submit.disabled = true;
@@ -650,7 +684,7 @@ create policy "Anyone can update boats"
         try {
           const { data, error } = await client.from("boats").upsert(record, { onConflict: "name_key" }).select().single();
           if (error) throw error;
-          const saved = { ...data, owners: readJsonList(data.owners), track: readJsonList(data.track) };
+          const saved = withCurrentTrackLocation({ ...data, owners: readJsonList(data.owners), track: readJsonList(data.track) });
           const index = boats.findIndex(boat => boat.name_key === nameKey);
           if (index >= 0) boats[index] = saved;
           else boats.push(saved);
@@ -662,7 +696,7 @@ create policy "Anyone can update boats"
           els.locationHint.textContent = "Choose a search result to set the map position, or click the map.";
           document.getElementById("owner-date").value = new Date().toISOString().slice(0, 10);
           setNotice(`${name} saved. Its location and ownership history are now shared.`);
-          map.setView([lat, lon], Math.max(map.getZoom(), 7));
+          map.setView([currentLocation.lat, currentLocation.lon], Math.max(map.getZoom(), 7));
           const marker = markerById.get(saved.id);
           if (marker) marker.openPopup();
           renderProfile(saved);
