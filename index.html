@@ -56,6 +56,22 @@
     .map-toolbar { position: absolute; z-index: 500; top: 14px; left: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: calc(100% - 28px); }
     .toolbar-chip { display: inline-flex; min-height: 36px; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid rgb(228 234 236 / 90%); border-radius: 11px; background: rgb(255 255 255 / 95%); color: var(--ink); font-size: 11px; box-shadow: 0 3px 12px rgb(23 50 60 / 8%); backdrop-filter: blur(8px); }
     .toolbar-chip select { max-width: 125px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 11px; font-weight: 600; }
+    .boat-search { position: relative; }
+    .boat-search input { width: 190px; height: 34px; padding: 0 9px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 11px; }
+    .boat-search input::placeholder { color: #849397; }
+    .boat-search input:focus { box-shadow: inset 0 0 0 2px rgb(19 111 118 / 18%); }
+    .boat-suggestions { position: absolute; z-index: 1000; top: calc(100% + 5px); left: 0; width: min(310px, calc(100vw - 48px)); max-height: 250px; overflow-y: auto; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
+    .boat-suggestions[hidden] { display: none; }
+    .boat-suggestions button, .boat-suggestions .empty-result { display: block; width: 100%; padding: 9px; border: 0; border-radius: 7px; background: #fff; color: var(--ink); text-align: left; }
+    .boat-suggestions button:hover, .boat-suggestions button:focus { outline: none; background: var(--mint); }
+    .boat-suggestion-name { display: block; font-size: 11px; font-weight: 700; }
+    .boat-suggestion-details, .boat-suggestions .empty-result { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .sighting-name-picker { position: relative; }
+    .sighting-suggestions { position: absolute; z-index: 1000; top: calc(100% + 3px); right: 0; left: 0; max-height: 210px; overflow-y: auto; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: #fff; box-shadow: var(--shadow); }
+    .sighting-suggestions[hidden] { display: none; }
+    .sighting-suggestions button, .sighting-suggestions .empty-result { display: block; width: 100%; padding: 9px; border: 0; border-radius: 6px; background: #fff; color: var(--ink); text-align: left; }
+    .sighting-suggestions button:hover, .sighting-suggestions button:focus { outline: none; background: var(--mint); }
+    .sighting-suggestions .boat-suggestion-details, .sighting-suggestions .empty-result { margin-top: 3px; color: var(--muted); font-size: 10px; }
     .filter-chip { position: relative; }
     .filter-chip input { accent-color: var(--sea); }
     .filter-key { width: 8px; height: 8px; border-radius: 50%; }
@@ -161,6 +177,8 @@
       .profile-panel { order: 1; }
       .toolbar-chip { min-height: 33px; padding: 0 8px; font-size: 10px; }
       .toolbar-chip select { max-width: 103px; font-size: 10px; }
+      .boat-search input { width: min(165px, calc(100vw - 135px)); font-size: 10px; }
+      .boat-suggestions { width: min(290px, calc(100vw - 48px)); }
       .map-hint { right: 10px; bottom: 30px; max-width: 195px; font-size: 10px; }
     }
   </style>
@@ -192,6 +210,10 @@
         <section class="map-card" aria-label="Boat locations map">
           <div id="map" role="application" aria-label="Interactive world map"></div>
           <div class="map-toolbar">
+            <div class="toolbar-chip boat-search">
+              <input id="boat-search" type="search" placeholder="Find a boat, owner or sail no." autocomplete="off" aria-label="Search boats by name, owner or sail number" aria-autocomplete="list" aria-controls="boat-suggestions" aria-expanded="false">
+              <div class="boat-suggestions" id="boat-suggestions" role="listbox" hidden></div>
+            </div>
             <label class="toolbar-chip">Colour by
               <select id="color-mode" aria-label="Choose pin colour category">
                 <option value="type">Boat type</option>
@@ -202,7 +224,7 @@
             <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="MG14" checked><span class="filter-key" style="background:#e08766"></span>MG14</label>
             <div class="legend-hull" id="hull-filters" aria-label="Filter by hull design"></div>
           </div>
-          <div class="map-hint">Zoom in for boat names. Zoom out to see boats grouped by region. Search a place or click the map to set its position.</div>
+          <div class="map-hint">Search a boat to find it and open its profile. Search a place or click the map to set a sighting location.</div>
         </section>
 
         <aside class="side-column">
@@ -213,7 +235,14 @@
             </div>
             <form id="boat-form">
               <div class="field-grid">
-                <div class="field full"><label for="boat-name">Boat name</label><input id="boat-name" name="name" maxlength="100" placeholder="e.g. Sea Sprite" required></div>
+                <div class="field full">
+                  <label for="boat-name">Boat name</label>
+                  <div class="sighting-name-picker">
+                    <input id="boat-name" name="name" maxlength="100" placeholder="e.g. Sea Sprite" autocomplete="off" aria-autocomplete="list" aria-controls="sighting-suggestions" aria-expanded="false" required>
+                    <div class="sighting-suggestions" id="sighting-suggestions" role="listbox" hidden></div>
+                  </div>
+                  <div class="field-hint">Type a boat name to select an existing boat and reuse its details.</div>
+                </div>
                 <div class="field"><label for="boat-type">Type</label><select id="boat-type" name="boat_type" required><option value="" disabled selected>Select</option><option>NS14</option><option>MG14</option></select></div>
                 <div class="field"><label for="hull-type">Hull design</label><input id="hull-type" name="hull_type" maxlength="80" placeholder="e.g. Midnight"></div>
                 <div class="field full">
@@ -231,7 +260,7 @@
                 <div class="field full"><label for="owner-name">Owner</label><input id="owner-name" name="owner" maxlength="100" placeholder="First name, Last name"></div>
                 <div class="field full"><label for="owner-date">Ownership / sighting date</label><input id="owner-date" name="date" type="date"></div>
               </div>
-              <p class="form-note">To add a new location or owner to an existing boat, use the same boat name again. Location search automatically sets its coordinates.</p>
+              <p class="form-note">Select an existing boat by name to autofill its details, then update the location or owner for this sighting. Location search automatically sets its coordinates.</p>
               <button class="primary-button" id="submit-button" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add to the map</span></button>
               <div class="notice" id="form-notice" aria-live="polite">Connecting to shared storage…</div>
             </form>
@@ -345,6 +374,16 @@ create policy "Anyone can update boats"
         location: document.getElementById("location-name"),
         locationHint: document.getElementById("location-hint"),
         locationSuggestions: document.getElementById("location-suggestions"),
+        boatSearch: document.getElementById("boat-search"),
+        boatSuggestions: document.getElementById("boat-suggestions"),
+        sightingSuggestions: document.getElementById("sighting-suggestions"),
+        boatName: document.getElementById("boat-name"),
+        boatType: document.getElementById("boat-type"),
+        hullType: document.getElementById("hull-type"),
+        nsSailNumber: document.getElementById("ns-sail-number"),
+        mgSailNumber: document.getElementById("mg-sail-number"),
+        ownerName: document.getElementById("owner-name"),
+        ownerDate: document.getElementById("owner-date"),
         latitude: document.getElementById("latitude"),
         longitude: document.getElementById("longitude")
       };
@@ -542,6 +581,140 @@ create policy "Anyone can update boats"
         els.profileClose.hidden = true;
       }
 
+      function hideBoatSuggestions() {
+        els.boatSuggestions.replaceChildren();
+        els.boatSuggestions.hidden = true;
+        els.boatSearch.setAttribute("aria-expanded", "false");
+      }
+
+      function boatMatchesQuery(boat, query) {
+        const values = [
+          boat.name,
+          boat.ns_sail_number,
+          boat.mg_sail_number,
+          ...(Array.isArray(boat.owners) ? boat.owners.map(owner => owner.name) : [])
+        ];
+        return values.some(value => value != null && String(value).toLocaleLowerCase().includes(query));
+      }
+
+      function renderBoatSuggestions(query) {
+        hideBoatSuggestions();
+        if (!query) return;
+        const matches = boats.filter(boat => boatMatchesQuery(boat, query)).slice(0, 8);
+        if (!matches.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-result";
+          empty.textContent = "No matching boats found.";
+          els.boatSuggestions.append(empty);
+        } else {
+          for (const boat of matches) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.role = "option";
+            const name = document.createElement("span");
+            name.className = "boat-suggestion-name";
+            name.textContent = text(boat.name);
+            const details = document.createElement("span");
+            details.className = "boat-suggestion-details";
+            details.textContent = boatSuggestionDetails(boat);
+            button.append(name, details);
+            button.addEventListener("click", () => focusBoatOnMap(boat));
+            els.boatSuggestions.append(button);
+          }
+        }
+        els.boatSuggestions.hidden = false;
+        els.boatSearch.setAttribute("aria-expanded", "true");
+      }
+
+      function selectBoatForSighting(boat) {
+        els.boatName.value = boat.name || "";
+        els.boatType.value = boat.boat_type === "NS14" || boat.boat_type === "MG14" ? boat.boat_type : "";
+        els.hullType.value = boat.hull_type === "Unknown" ? "" : boat.hull_type || "";
+        els.nsSailNumber.value = boat.ns_sail_number || "";
+        els.mgSailNumber.value = boat.mg_sail_number || "";
+        const owners = Array.isArray(boat.owners) ? boat.owners : [];
+        els.ownerName.value = owners.length ? owners.at(-1).name || "" : "";
+        els.location.value = boat.location === "Unknown" ? "" : boat.location || "";
+        const point = coordinatePair(boat);
+        els.latitude.value = point ? point[0].toFixed(6) : "";
+        els.longitude.value = point ? point[1].toFixed(6) : "";
+        els.locationHint.textContent = point
+          ? `Position set: ${point[0].toFixed(5)}, ${point[1].toFixed(5)}.`
+          : "Choose a search result to set the map position, or click the map.";
+        els.ownerDate.value = new Date().toISOString().slice(0, 10);
+        hideSightingSuggestions();
+        hideLocationSuggestions();
+      }
+
+      function hideSightingSuggestions() {
+        els.sightingSuggestions.replaceChildren();
+        els.sightingSuggestions.hidden = true;
+        els.boatName.setAttribute("aria-expanded", "false");
+      }
+
+      function renderSightingSuggestions(query) {
+        hideSightingSuggestions();
+        if (!query) return;
+        const matches = boats.filter(boat => text(boat.name).toLocaleLowerCase().includes(query)).slice(0, 8);
+        if (!matches.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-result";
+          empty.textContent = "No existing boats match this name.";
+          els.sightingSuggestions.append(empty);
+        } else {
+          for (const boat of matches) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.role = "option";
+            const name = document.createElement("span");
+            name.className = "boat-suggestion-name";
+            name.textContent = text(boat.name);
+            const details = document.createElement("span");
+            details.className = "boat-suggestion-details";
+            details.textContent = boatSuggestionDetails(boat);
+            button.append(name, details);
+            button.addEventListener("click", () => selectBoatForSighting(boat));
+            els.sightingSuggestions.append(button);
+          }
+        }
+        els.sightingSuggestions.hidden = false;
+        els.boatName.setAttribute("aria-expanded", "true");
+      }
+
+      function boatSuggestionDetails(boat) {
+        const sailNumbers = [boat.ns_sail_number && `NS ${boat.ns_sail_number}`, boat.mg_sail_number && `MG ${boat.mg_sail_number}`].filter(Boolean);
+        const owners = Array.isArray(boat.owners) ? boat.owners.map(owner => owner.name).filter(Boolean) : [];
+        return [text(boat.boat_type), ...sailNumbers, owners.length ? `Owner: ${owners.at(-1)}` : null].filter(Boolean).join(" · ");
+      }
+
+      function focusBoatOnMap(boat) {
+        els.boatSearch.value = "";
+        hideBoatSuggestions();
+        const typeFilters = Array.from(document.querySelectorAll(".type-filter"));
+        if (boat.boat_type === "NS14" || boat.boat_type === "MG14") {
+          const typeFilter = typeFilters.find(filter => filter.value === boat.boat_type);
+          if (typeFilter) typeFilter.checked = true;
+        } else {
+          typeFilters.forEach(filter => { filter.checked = true; });
+        }
+        const hullFilter = Array.from(els.hullFilters.querySelectorAll("input")).find(filter => filter.value === text(boat.hull_type));
+        if (hullFilter) hullFilter.checked = true;
+        const point = coordinatePair(boat);
+        map.closePopup();
+        renderMarkers();
+        renderProfile(boat);
+        if (point) {
+          const targetZoom = Math.max(map.getZoom(), 10);
+          const needsMapMove = map.getZoom() !== targetZoom || !map.getCenter().equals(L.latLng(point));
+          if (needsMapMove) {
+            map.once("moveend", () => markerById.get(boat.id)?.openPopup());
+            map.setView(point, targetZoom);
+          } else {
+            markerById.get(boat.id)?.openPopup();
+          }
+        }
+      }
+
       function renderMarkers() {
         markers.clearLayers();
         markerById.clear();
@@ -583,6 +756,8 @@ create policy "Anyone can update boats"
           if (selected) renderProfile(selected);
           else clearProfile();
         }
+        if (!els.boatSuggestions.hidden) renderBoatSuggestions(els.boatSearch.value.trim().toLocaleLowerCase());
+        if (!els.sightingSuggestions.hidden) renderSightingSuggestions(els.boatName.value.trim().toLocaleLowerCase());
       }
 
       function readJsonList(value) {
@@ -832,6 +1007,16 @@ create policy "Anyone can update boats"
       });
       document.addEventListener("click", event => {
         if (!event.target.closest(".location-autocomplete")) hideLocationSuggestions();
+        if (!event.target.closest(".boat-search")) hideBoatSuggestions();
+        if (!event.target.closest(".sighting-name-picker")) hideSightingSuggestions();
+      });
+      els.boatSearch.addEventListener("input", () => renderBoatSuggestions(els.boatSearch.value.trim().toLocaleLowerCase()));
+      els.boatSearch.addEventListener("keydown", event => {
+        if (event.key === "Escape") hideBoatSuggestions();
+      });
+      els.boatName.addEventListener("input", () => renderSightingSuggestions(els.boatName.value.trim().toLocaleLowerCase()));
+      els.boatName.addEventListener("keydown", event => {
+        if (event.key === "Escape") hideSightingSuggestions();
       });
       els.profileClose.addEventListener("click", clearProfile);
       document.querySelectorAll(".type-filter").forEach(filter => filter.addEventListener("change", renderMarkers));
