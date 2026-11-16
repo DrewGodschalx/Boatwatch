@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f8">
+  <title>Boatwatch — Dinghy tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17323c;
+      --muted: #71838a;
+      --line: #e4eaec;
+      --paper: #fff;
+      --canvas: #f5f7f8;
+      --sea: #136f76;
+      --sea-dark: #0e555d;
+      --mint: #e6f4f1;
+      --coral: #e08766;
+      --shadow: 0 12px 32px rgb(23 50 60 / 8%);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-family: "DM Sans", sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1540px; margin: 0 auto; padding: 28px 34px 36px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; background: var(--sea); color: #fff; }
+    .brand-mark svg { width: 24px; height: 24px; }
+    .brand-name { font: 800 20px/1 "Manrope", sans-serif; letter-spacing: -.7px; }
+    .brand-subtitle { margin-top: 5px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 1.35px; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .connection { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #d29a51; }
+    .status-dot.online { background: #45a482; }
+    .settings-button, .icon-button { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); }
+    .settings-button:hover, .icon-button:hover { border-color: #b6ccce; background: #f8fbfb; }
+    .settings-button svg, .icon-button svg { width: 17px; height: 17px; }
+    .intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin: 0 0 18px; }
+    h1 { margin: 0; font: 800 clamp(25px, 3vw, 35px)/1.15 "Manrope", sans-serif; letter-spacing: -1.15px; }
+    .intro p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .stat-pill { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 99px; background: var(--paper); color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .stat-pill strong { color: var(--ink); font-size: 14px; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 18px; align-items: stretch; }
+    .map-card, .panel { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: var(--shadow); }
+    .map-card { position: relative; min-height: 610px; }
+    #map { position: absolute; inset: 0; background: #dcebed; }
+    .map-toolbar { position: absolute; z-index: 500; top: 14px; left: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: calc(100% - 28px); }
+    .toolbar-chip { display: inline-flex; min-height: 36px; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid rgb(228 234 236 / 90%); border-radius: 11px; background: rgb(255 255 255 / 95%); color: var(--ink); font-size: 11px; box-shadow: 0 3px 12px rgb(23 50 60 / 8%); backdrop-filter: blur(8px); }
+    .toolbar-chip select { max-width: 125px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 11px; font-weight: 600; }
+    .filter-chip { position: relative; }
+    .filter-chip input { accent-color: var(--sea); }
+    .filter-key { width: 8px; height: 8px; border-radius: 50%; }
+    .legend-hull { display: none; flex-wrap: wrap; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid rgb(228 234 236 / 90%); border-radius: 11px; background: rgb(255 255 255 / 95%); box-shadow: 0 3px 12px rgb(23 50 60 / 8%); }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; color: #536970; font-size: 10px; }
+    .legend-item .filter-key { width: 7px; height: 7px; }
+    .map-hint { position: absolute; z-index: 400; right: 14px; bottom: 14px; max-width: 245px; padding: 9px 12px; border: 1px solid rgb(228 234 236 / 90%); border-radius: 10px; background: rgb(255 255 255 / 94%); color: #62757b; font-size: 11px; line-height: 1.4; box-shadow: 0 3px 12px rgb(23 50 60 / 8%); }
+    .side-column { display: flex; flex-direction: column; gap: 16px; }
+    .panel { padding: 19px; }
+    .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .panel-heading h2 { margin: 0; font: 700 16px/1.3 "Manrope", sans-serif; letter-spacing: -.3px; }
+    .panel-heading p { margin: 4px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .heading-icon { display: grid; width: 32px; height: 32px; flex: 0 0 auto; place-items: center; border-radius: 10px; background: var(--mint); color: var(--sea); }
+    .heading-icon svg { width: 16px; height: 16px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 10px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { display: block; margin-bottom: 6px; color: #50656c; font-size: 11px; font-weight: 700; }
+    .field input, .field select { width: 100%; height: 39px; padding: 0 10px; border: 1px solid #e1e8e9; border-radius: 9px; outline: none; background: #fff; color: var(--ink); font-size: 12px; }
+    .field input:focus, .field select:focus { border-color: #7aafb1; box-shadow: 0 0 0 3px rgb(19 111 118 / 10%); }
+    .field input::placeholder { color: #a4b0b4; }
+    .form-note { margin: 11px 0 13px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .primary-button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; background: var(--sea); color: white; font-size: 12px; font-weight: 700; transition: background .15s, transform .15s; }
+    .primary-button:hover:not(:disabled) { transform: translateY(-1px); background: var(--sea-dark); }
+    .primary-button:disabled { cursor: wait; opacity: .65; }
+    .primary-button svg { width: 16px; height: 16px; }
+    .notice { margin-top: 10px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .notice.error { color: #ab503e; }
+    .profile-panel { min-height: 174px; }
+    .empty-profile { display: grid; min-height: 92px; place-items: center; padding: 8px; border: 1px dashed #dce5e6; border-radius: 11px; color: #87979b; text-align: center; font-size: 11px; line-height: 1.6; }
+    .profile-content { display: none; }
+    .profile-name { margin: 0 0 4px; font: 700 18px/1.25 "Manrope", sans-serif; letter-spacing: -.5px; }
+    .profile-tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 99px; background: var(--mint); color: var(--sea-dark); font-size: 10px; font-weight: 700; }
+    .profile-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+    .meta-label { margin-bottom: 3px; color: var(--muted); font-size: 10px; }
+    .meta-value { color: var(--ink); font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+    .history-title { margin: 15px 0 8px; color: #5a6e74; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+    .history-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .history-item { position: relative; padding-left: 13px; color: #64777d; font-size: 11px; line-height: 1.45; }
+    .history-item::before { position: absolute; top: 4px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: #8eb6b4; content: ""; }
+    .history-item strong { color: var(--ink); font-weight: 600; }
+    .track-toggle { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); color: #50656c; font-size: 11px; font-weight: 600; }
+    .track-toggle input { accent-color: var(--sea); }
+    .profile-close { width: 28px; height: 28px; }
+    .leaflet-container { font-family: "DM Sans", sans-serif; }
+    .boat-marker { display: flex; min-width: 22px; height: 22px; align-items: center; justify-content: center; border: 2px solid #fff; border-radius: 50%; color: #fff; box-shadow: 0 2px 6px rgb(20 49 55 / 30%); }
+    .boat-marker span { display: none; }
+    .boat-marker.named { width: auto; height: 27px; justify-content: flex-start; padding: 0 9px 0 7px; border-radius: 99px; white-space: nowrap; }
+    .boat-marker.named .marker-dot { width: 8px; height: 8px; flex: 0 0 auto; margin-right: 6px; border-radius: 50%; background: #fff; }
+    .boat-marker.named span { display: inline; max-width: 142px; overflow: hidden; font-size: 10px; font-weight: 700; text-overflow: ellipsis; }
+    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: rgb(19 111 118 / 16%); }
+    .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background-color: #136f76; color: #fff; font-family: "DM Sans", sans-serif; font-weight: 700; }
+    .leaflet-popup-content-wrapper { border-radius: 12px; }
+    .leaflet-popup-content { margin: 12px 15px; font: 12px/1.5 "DM Sans", sans-serif; }
+    .leaflet-popup-content strong { font-family: "Manrope", sans-serif; }
+    .map-picker { cursor: crosshair !important; }
+    dialog { width: min(660px, calc(100% - 28px)); max-height: min(86vh, 780px); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); box-shadow: 0 24px 80px rgb(23 50 60 / 25%); }
+    dialog::backdrop { background: rgb(16 38 44 / 40%); backdrop-filter: blur(3px); }
+    .dialog-inner { padding: 22px; }
+    .dialog-top { display: flex; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+    .dialog-top h2 { margin: 0; font: 700 19px "Manrope", sans-serif; }
+    .dialog-top p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .config-fields { display: grid; gap: 11px; }
+    .config-fields label { color: #50656c; font-size: 11px; font-weight: 700; }
+    .config-fields input { display: block; width: 100%; height: 40px; margin-top: 6px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; outline: none; font-size: 12px; }
+    .sql-wrap { margin-top: 17px; }
+    .sql-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; color: #50656c; font-size: 11px; font-weight: 700; }
+    .copy-button { padding: 5px 9px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--sea); font-size: 10px; font-weight: 700; }
+    pre { max-height: 235px; overflow: auto; margin: 0; padding: 12px; border-radius: 9px; background: #f3f6f7; color: #38525b; font: 10px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; }
+    .secondary-button { min-height: 38px; padding: 0 13px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: #536970; font-size: 11px; font-weight: 700; }
+    .dialog-actions .primary-button { width: auto; min-height: 38px; padding: 0 14px; }
+    .fine-print { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .map-attribution-note { position: absolute; z-index: 400; left: 14px; bottom: 12px; color: #71838a; font-size: 9px; pointer-events: none; }
+    @media (max-width: 1030px) {
+      .shell { padding: 22px; }
+      .workspace { grid-template-columns: minmax(0, 1fr) 320px; gap: 13px; }
+      .map-card { min-height: 620px; }
+      .panel { padding: 16px; }
+    }
+    @media (max-width: 780px) {
+      .shell { padding: 17px 14px 25px; }
+      header { margin-bottom: 20px; }
+      .connection span:last-child { display: none; }
+      .intro { align-items: flex-start; }
+      .intro p { max-width: 440px; font-size: 12px; line-height: 1.5; }
+      .stat-pill { padding: 8px 10px; font-size: 10px; }
+      .workspace { grid-template-columns: 1fr; }
+      .map-card { min-height: 55vh; height: 510px; }
+      .side-column { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+      .input-panel { grid-row: span 2; }
+    }
+    @media (max-width: 540px) {
+      .brand-mark { width: 38px; height: 38px; }
+      .brand-name { font-size: 18px; }
+      .intro { display: block; }
+      .stat-pill { display: inline-flex; margin-top: 12px; }
+      .map-card { height: 420px; min-height: 420px; }
+      .side-column { display: flex; }
+      .input-panel { order: 0; }
+      .profile-panel { order: 1; }
+      .toolbar-chip { min-height: 33px; padding: 0 8px; font-size: 10px; }
+      .toolbar-chip select { max-width: 103px; font-size: 10px; }
+      .map-hint { right: 10px; bottom: 10px; max-width: 195px; font-size: 10px; }
+      .map-attribution-note { left: 10px; bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5h18l-3.1 3.2H7.2L3 16.5Z"/><path d="M12 4v12.5M12 5 5.5 14h6.5M12 7l5.5 7H12"/><path d="M4 21c1.2-.8 2.2-.8 3.4 0 1.2.8 2.2.8 3.4 0 1.2-.8 2.2-.8 3.4 0 1.2.8 2.2.8 3.4 0 1.2-.8 2.2-.8 3.4 0"/></svg>
+        </div>
+        <div><div class="brand-name">boatwatch</div><div class="brand-subtitle">Dinghy tracker</div></div>
+      </div>
+      <div class="header-right">
+        <div class="connection" aria-live="polite"><span class="status-dot" id="status-dot"></span><span id="connection-label">Connect a shared database</span></div>
+        <button class="settings-button" id="settings-button" aria-label="Database settings" title="Database settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1.9-1.6 2.8-1.4-.5a7.6 7.6 0 0 1-1.6.9l-.2 1.5h-3.2l-.2-1.5a7.6 7.6 0 0 1-1.6-.9l-1.4.5-1.6-2.8 1.1-.9a7.3 7.3 0 0 1 0-1.8l-1.1-.9 1.6-2.8 1.4.5a7.6 7.6 0 0 1 1.6-.9l.2-1.5h3.2l.2 1.5a7.6 7.6 0 0 1 1.6.9l1.4-.5 1.6 2.8-1.1.9a7.3 7.3 0 0 1 0 1.7Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div><h1>Where are the boats?</h1><p>Explore the fleet, discover each boat’s story, and follow its journey.</p></div>
+        <div class="stat-pill"><strong id="boat-count">0</strong><span>boats on the map</span></div>
+      </section>
+
+      <div class="workspace">
+        <section class="map-card" aria-label="Boat locations map">
+          <div id="map" role="application" aria-label="Interactive world map"></div>
+          <div class="map-toolbar">
+            <label class="toolbar-chip">Colour by
+              <select id="color-mode" aria-label="Choose pin colour category">
+                <option value="type">Boat type</option>
+                <option value="hull">Hull design</option>
+              </select>
+            </label>
+            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="NS14" checked><span class="filter-key" style="background:#138b86"></span>NS14</label>
+            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="MG14" checked><span class="filter-key" style="background:#e08766"></span>MG14</label>
+            <div class="legend-hull" id="hull-filters" aria-label="Filter by hull design"></div>
+          </div>
+          <div class="map-hint">Zoom in for boat names. Zoom out to see boats grouped by region. Click the map to set a location.</div>
+          <div class="map-attribution-note">Map data © OpenStreetMap contributors</div>
+        </section>
+
+        <aside class="side-column">
+          <section class="panel input-panel">
+            <div class="panel-heading">
+              <div><h2>Add a boat sighting</h2><p>Submissions are shared publicly with everyone.</p></div>
+              <span class="heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="9"/></svg></span>
+            </div>
+            <form id="boat-form">
+              <div class="field-grid">
+                <div class="field full"><label for="boat-name">Boat name</label><input id="boat-name" name="name" maxlength="100" placeholder="e.g. Sea Sprite" required></div>
+                <div class="field"><label for="boat-type">Type</label><select id="boat-type" name="boat_type" required><option value="" disabled selected>Select</option><option>NS14</option><option>MG14</option></select></div>
+                <div class="field"><label for="hull-type">Hull design</label><input id="hull-type" name="hull_type" maxlength="80" placeholder="e.g. NS14 Mk 2"></div>
+                <div class="field full"><label for="location-name">Location</label><input id="location-name" name="location" maxlength="160" placeholder="Club, harbour or town" required></div>
+                <div class="field"><label for="latitude">Latitude</label><input id="latitude" name="lat" type="number" step="any" min="-90" max="90" placeholder="-33.8688" required></div>
+                <div class="field"><label for="longitude">Longitude</label><input id="longitude" name="lon" type="number" step="any" min="-180" max="180" placeholder="151.2093" required></div>
+                <div class="field full"><label for="owner-name">Owner</label><input id="owner-name" name="owner" maxlength="100" placeholder="Current owner, or Unknown"></div>
+                <div class="field full"><label for="owner-date">Ownership / sighting date</label><input id="owner-date" name="date" type="date"></div>
+              </div>
+              <p class="form-note">To add a new location or owner to an existing boat, use the same boat name again. Click the map to fill in coordinates.</p>
+              <button class="primary-button" id="submit-button" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add to the map</span></button>
+              <div class="notice" id="form-notice" aria-live="polite">Database setup is needed before submissions can be saved.</div>
+            </form>
+          </section>
+
+          <section class="panel profile-panel" aria-live="polite">
+            <div class="panel-heading">
+              <div><h2>Boat profile</h2><p>Click a pin to view its details.</p></div>
+              <button class="icon-button profile-close" id="profile-close" aria-label="Close boat profile" title="Close profile" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="empty-profile" id="empty-profile">Select a boat on the map to see its type, hull, location and ownership history.</div>
+            <div class="profile-content" id="profile-content"></div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <div class="dialog-inner">
+      <div class="dialog-top">
+        <div><h2 id="settings-title">Connect shared storage</h2><p>Connect a Supabase project to load and share boat data across devices.</p></div>
+        <button class="icon-button" id="settings-close" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="config-fields">
+        <label for="supabase-url">Project URL<input id="supabase-url" type="url" placeholder="https://your-project.supabase.co" autocomplete="url"></label>
+        <label for="supabase-key">Publishable / anon key<input id="supabase-key" type="password" placeholder="sb_publishable_... or legacy anon key" autocomplete="off"></label>
+      </div>
+      <div class="sql-wrap">
+        <div class="sql-heading"><span>Run this once in Supabase → SQL Editor</span><button class="copy-button" id="copy-sql" type="button">Copy SQL</button></div>
+        <pre id="setup-sql">create extension if not exists pgcrypto;
+
+create table if not exists public.boats (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  name_key text not null unique,
+  boat_type text not null default 'Unknown',
+  hull_type text not null default 'Unknown',
+  location text not null default 'Unknown',
+  lat double precision,
+  lon double precision,
+  owners jsonb not null default '[]'::jsonb,
+  track jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.boats enable row level security;
+
+create policy "Anyone can view boats"
+  on public.boats for select using (true);
+create policy "Anyone can add boats"
+  on public.boats for insert with check (true);
+create policy "Anyone can update boats"
+  on public.boats for update using (true) with check (true);</pre>
+      </div>
+      <div class="fine-print">These open policies allow anyone with access to this page to read and submit boat records. Use only a publishable/anon key—never a service-role key. Credentials are saved in this browser; the boat records live in Supabase. Protect the project with backups and monitoring.</div>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="settings-cancel" type="button">Cancel</button>
+        <button class="primary-button" id="connect-button" type="button">Save and connect</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "boatwatch.supabase";
+      const NS_COLOR = "#138b86";
+      const MG_COLOR = "#e08766";
+      const UNKNOWN_COLOR = "#788b91";
+      const HULL_PALETTE = ["#6e75c8", "#bd7256", "#318f72", "#ca9b38", "#b65e91", "#3f86b8", "#8a704f", "#569b9c", "#925db5", "#697d42"];
+      const sql = document.getElementById("setup-sql").textContent;
+      const map = L.map("map", { worldCopyJump: true, minZoom: 2 }).setView([-25, 135], 3);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      const markers = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 48, spiderfyOnMaxZoom: true });
+      map.addLayer(markers);
+
+      const els = {
+        statusDot: document.getElementById("status-dot"),
+        connection: document.getElementById("connection-label"),
+        count: document.getElementById("boat-count"),
+        form: document.getElementById("boat-form"),
+        notice: document.getElementById("form-notice"),
+        submit: document.getElementById("submit-button"),
+        mapCard: document.querySelector(".map-card"),
+        mode: document.getElementById("color-mode"),
+        hullFilters: document.getElementById("hull-filters"),
+        emptyProfile: document.getElementById("empty-profile"),
+        profile: document.getElementById("profile-content"),
+        profileClose: document.getElementById("profile-close"),
+        dialog: document.getElementById("settings-dialog"),
+        url: document.getElementById("supabase-url"),
+        key: document.getElementById("supabase-key")
+      };
+      let client = null;
+      let boats = [];
+      let selectedBoatId = null;
+      const markerById = new Map();
+      const tracksById = new Map();
+      const selectedTracks = new Set();
+      let hullColors = new Map();
+
+      function setNotice(message, isError = false) {
+        els.notice.textContent = message;
+        els.notice.classList.toggle("error", isError);
+      }
+
+      function setConnected(connected, message) {
+        els.statusDot.classList.toggle("online", connected);
+        els.connection.textContent = message;
+      }
+
+      function getConfig() {
+        try {
+          const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          return value && typeof value.url === "string" && typeof value.key === "string" ? value : null;
+        } catch (error) {
+          console.error("Could not read the saved database configuration.", error);
+          return null;
+        }
+      }
+
+      function normalizeName(value) {
+        return value.trim().toLocaleLowerCase();
+      }
+
+      function text(value) {
+        return value == null || String(value).trim() === "" ? "Unknown" : String(value).trim();
+      }
+
+      function coordinatePair(entry) {
+        if (entry?.lat == null || entry?.lon == null || String(entry.lat).trim() === "" || String(entry.lon).trim() === "") return null;
+        const lat = Number(entry.lat);
+        const lon = Number(entry.lon);
+        return Number.isFinite(lat) && lat >= -90 && lat <= 90 && Number.isFinite(lon) && lon >= -180 && lon <= 180
+          ? [lat, lon]
+          : null;
+      }
+
+      function dateLabel(value) {
+        if (!value) return "Date unknown";
+        const parsed = new Date(`${value}T00:00:00`);
+        return Number.isNaN(parsed.getTime()) ? "Date unknown" : parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+      }
+
+      function currentZoom() {
+        return map.getZoom();
+      }
+
+      function colorFor(boat) {
+        if (els.mode.value === "hull") return hullColors.get(text(boat.hull_type)) || UNKNOWN_COLOR;
+        if (boat.boat_type === "NS14") return NS_COLOR;
+        if (boat.boat_type === "MG14") return MG_COLOR;
+        return UNKNOWN_COLOR;
+      }
+
+      function isVisible(boat) {
+        const typeVisible = Array.from(document.querySelectorAll(".type-filter")).some(filter => filter.value === boat.boat_type && filter.checked);
+        const allTypeFilters = Array.from(document.querySelectorAll(".type-filter"));
+        const typeFilterVisible = boat.boat_type !== "NS14" && boat.boat_type !== "MG14"
+          ? allTypeFilters.every(filter => filter.checked)
+          : typeVisible;
+        const hullFilter = Array.from(els.hullFilters.querySelectorAll("input")).find(filter => filter.value === text(boat.hull_type));
+        return typeFilterVisible && (!hullFilter || hullFilter.checked);
+      }
+
+      function markerIcon(boat) {
+        const named = currentZoom() >= 7;
+        const color = colorFor(boat);
+        const label = text(boat.name);
+        const content = named
+          ? `<i class="marker-dot"></i><span>${escapeHtml(label)}</span>`
+          : "";
+        return L.divIcon({
+          className: "",
+          html: `<div class="boat-marker${named ? " named" : ""}" style="background:${color}">${content}</div>`,
+          iconSize: named ? [Math.min(180, Math.max(70, label.length * 6.7 + 30)), 27] : [22, 22],
+          iconAnchor: named ? [14, 14] : [11, 11]
+        });
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, character => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[character]);
+      }
+
+      function refreshHullFilters() {
+        const hulls = [...new Set(boats.map(boat => text(boat.hull_type)))].sort((a, b) => a.localeCompare(b));
+        hullColors = new Map(hulls.map((hull, index) => [hull, HULL_PALETTE[index % HULL_PALETTE.length]]));
+        const previous = new Map(Array.from(els.hullFilters.querySelectorAll("input"), input => [input.value, input.checked]));
+        els.hullFilters.innerHTML = "";
+        for (const hull of hulls) {
+          const label = document.createElement("label");
+          label.className = "legend-item";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = hull;
+          checkbox.checked = previous.has(hull) ? previous.get(hull) : true;
+          checkbox.addEventListener("change", renderMarkers);
+          const swatch = document.createElement("span");
+          swatch.className = "filter-key";
+          swatch.style.background = hullColors.get(hull);
+          const title = document.createElement("span");
+          title.textContent = hull;
+          label.append(checkbox, swatch, title);
+          els.hullFilters.append(label);
+        }
+        els.hullFilters.style.display = els.mode.value === "hull" && hulls.length ? "flex" : "none";
+      }
+
+      function buildHistory(items, describe) {
+        if (!Array.isArray(items) || items.length === 0) return '<li class="history-item">Unknown</li>';
+        return items.slice().reverse().map(item => {
+          const details = describe(item);
+          return `<li class="history-item"><strong>${escapeHtml(text(details.primary))}</strong><br>${escapeHtml(details.secondary)}</li>`;
+        }).join("");
+      }
+
+      function renderProfile(boat) {
+        selectedBoatId = boat.id;
+        els.emptyProfile.style.display = "none";
+        els.profile.style.display = "block";
+        els.profileClose.hidden = false;
+        const owners = Array.isArray(boat.owners) ? boat.owners : [];
+        const track = Array.isArray(boat.track) ? boat.track : [];
+        const checked = selectedTracks.has(boat.id) ? "checked" : "";
+        els.profile.innerHTML = `
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+            <div><h3 class="profile-name">${escapeHtml(text(boat.name))}</h3><span class="profile-tag">${escapeHtml(text(boat.boat_type))}</span></div>
+          </div>
+          <div class="profile-meta">
+            <div><div class="meta-label">Hull design</div><div class="meta-value">${escapeHtml(text(boat.hull_type))}</div></div>
+            <div><div class="meta-label">Current location</div><div class="meta-value">${escapeHtml(text(boat.location))}</div></div>
+          </div>
+          <div class="history-title">Owners &amp; dates</div>
+          <ul class="history-list">${buildHistory(owners, owner => ({
+            primary: text(owner.name),
+            secondary: `${dateLabel(owner.from)}${owner.to ? ` – ${dateLabel(owner.to)}` : " – Current / end date unknown"}`
+          }))}</ul>
+          <div class="history-title">Location history</div>
+          <ul class="history-list">${buildHistory(track, entry => ({
+            primary: text(entry.location),
+            secondary: `${dateLabel(entry.date)} · ${coordinatePair(entry) ? coordinatePair(entry).map(value => value.toFixed(4)).join(", ") : "Coordinates unknown"}`
+          }))}</ul>
+          <label class="track-toggle"><input type="checkbox" id="track-toggle" ${checked} ${track.length < 2 ? "disabled" : ""}>Show movement path${track.length < 2 ? " (add more locations to create a path)" : ""}</label>`;
+        document.getElementById("track-toggle").addEventListener("change", event => {
+          if (event.target.checked) selectedTracks.add(boat.id);
+          else selectedTracks.delete(boat.id);
+          renderTracks();
+        });
+      }
+
+      function clearProfile() {
+        selectedBoatId = null;
+        els.emptyProfile.style.display = "grid";
+        els.profile.style.display = "none";
+        els.profile.replaceChildren();
+        els.profileClose.hidden = true;
+      }
+
+      function renderMarkers() {
+        markers.clearLayers();
+        markerById.clear();
+        for (const boat of boats) {
+          const point = coordinatePair(boat);
+          if (!point || !isVisible(boat)) continue;
+          const marker = L.marker(point, { icon: markerIcon(boat), title: text(boat.name) });
+          marker.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong><br>${escapeHtml(text(boat.boat_type))} · ${escapeHtml(text(boat.hull_type))}<br>${escapeHtml(text(boat.location))}`);
+          marker.on("click", () => renderProfile(boat));
+          markers.addLayer(marker);
+          markerById.set(boat.id, marker);
+        }
+      }
+
+      function renderTracks() {
+        for (const line of tracksById.values()) map.removeLayer(line);
+        tracksById.clear();
+        for (const id of selectedTracks) {
+          const boat = boats.find(item => item.id === id);
+          if (!boat) continue;
+          const points = (Array.isArray(boat.track) ? boat.track : [])
+            .map(coordinatePair)
+            .filter(point => point !== null);
+          if (points.length < 2) continue;
+          const line = L.polyline(points, { color: colorFor(boat), weight: 3, opacity: .8, dashArray: "7 6" }).addTo(map);
+          line.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong> · movement path`);
+          tracksById.set(id, line);
+        }
+      }
+
+      function renderAll() {
+        boats.sort((a, b) => text(a.name).localeCompare(text(b.name)));
+        els.count.textContent = String(boats.length);
+        refreshHullFilters();
+        renderMarkers();
+        renderTracks();
+        if (selectedBoatId) {
+          const selected = boats.find(boat => boat.id === selectedBoatId);
+          if (selected) renderProfile(selected);
+          else clearProfile();
+        }
+      }
+
+      function readJsonList(value) {
+        if (Array.isArray(value)) return value;
+        if (typeof value === "string") {
+          try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (error) {
+            console.error("A boat record contains invalid history data.", error);
+          }
+        }
+        return [];
+      }
+
+      async function loadBoats() {
+        if (!client) {
+          setConnected(false, "Connect a shared database");
+          setNotice("Database setup is needed before submissions can be saved.");
+          return;
+        }
+        setConnected(false, "Loading shared boats…");
+        try {
+          const { data, error } = await client.from("boats").select("*").order("name");
+          if (error) throw error;
+          boats = (data || []).map(boat => ({
+            ...boat,
+            owners: readJsonList(boat.owners),
+            track: readJsonList(boat.track)
+          }));
+          setConnected(true, "Shared database connected");
+          setNotice("Locations and ownership history are shared publicly.");
+          renderAll();
+        } catch (error) {
+          console.error("Could not load boats from Supabase.", error);
+          setConnected(false, "Database connection failed");
+          setNotice(`Could not load boats: ${error.message || "check the project URL, key, and SQL setup."}`, true);
+        }
+      }
+
+      async function saveBoat(event) {
+        event.preventDefault();
+        if (!client) {
+          setNotice("Connect Supabase in settings before submitting. This record was not saved.", true);
+          return;
+        }
+        const formData = new FormData(els.form);
+        const name = String(formData.get("name") || "").trim();
+        const nameKey = normalizeName(name);
+        const type = String(formData.get("boat_type") || "").trim();
+        const hull = String(formData.get("hull_type") || "").trim() || "Unknown";
+        const location = String(formData.get("location") || "").trim();
+        const lat = Number(formData.get("lat"));
+        const lon = Number(formData.get("lon"));
+        const ownerName = String(formData.get("owner") || "").trim() || "Unknown";
+        const date = String(formData.get("date") || "") || new Date().toISOString().slice(0, 10);
+        if (!name || !type || !location || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+          setNotice("Enter a boat name, type, location and valid map coordinates.", true);
+          return;
+        }
+        if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+          setNotice("Coordinates are out of range. Latitude is −90 to 90; longitude is −180 to 180.", true);
+          return;
+        }
+
+        const existing = boats.find(boat => boat.name_key === nameKey);
+        const owners = existing ? existing.owners.slice() : [];
+        const lastOwner = owners.at(-1);
+        if (!lastOwner || normalizeName(text(lastOwner.name)) !== normalizeName(ownerName)) {
+          if (lastOwner && !lastOwner.to) lastOwner.to = date;
+          owners.push({ name: ownerName, from: date, to: null });
+        }
+        const track = existing ? existing.track.slice() : [];
+        track.push({ location, lat, lon, date });
+        const record = {
+          ...(existing || {}),
+          name,
+          name_key: nameKey,
+          boat_type: type,
+          hull_type: hull,
+          location,
+          lat,
+          lon,
+          owners,
+          track,
+          updated_at: new Date().toISOString()
+        };
+        els.submit.disabled = true;
+        els.submit.querySelector("span").textContent = "Saving…";
+        setNotice("Saving this sighting to the shared fleet…");
+        try {
+          const { data, error } = await client.from("boats").upsert(record, { onConflict: "name_key" }).select().single();
+          if (error) throw error;
+          const saved = { ...data, owners: readJsonList(data.owners), track: readJsonList(data.track) };
+          const index = boats.findIndex(boat => boat.name_key === nameKey);
+          if (index >= 0) boats[index] = saved;
+          else boats.push(saved);
+          renderAll();
+          els.form.reset();
+          document.getElementById("owner-date").value = new Date().toISOString().slice(0, 10);
+          setNotice(`${name} saved. Its location and ownership history are now shared.`);
+          map.setView([lat, lon], Math.max(map.getZoom(), 7));
+          const marker = markerById.get(saved.id);
+          if (marker) marker.openPopup();
+          renderProfile(saved);
+        } catch (error) {
+          console.error("Could not save boat sighting.", error);
+          setNotice(`Could not save the sighting: ${error.message || "check the table and database policies."}`, true);
+        } finally {
+          els.submit.disabled = false;
+          els.submit.querySelector("span").textContent = "Add to the map";
+        }
+      }
+
+      async function connect() {
+        const url = els.url.value.trim();
+        const key = els.key.value.trim();
+        if (!/^https:\/\/[a-zA-Z0-9.-]+$/.test(url)) {
+          els.url.setCustomValidity("Enter a valid Supabase project URL.");
+          els.url.reportValidity();
+          els.url.setCustomValidity("");
+          return;
+        }
+        if (!key) {
+          els.key.setCustomValidity("Enter the project publishable/anon key.");
+          els.key.reportValidity();
+          els.key.setCustomValidity("");
+          return;
+        }
+        if (!window.supabase) {
+          setNotice("The Supabase library did not load. Check your internet connection and reload.", true);
+          return;
+        }
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ url, key }));
+          client = window.supabase.createClient(url, key);
+        } catch (error) {
+          console.error("Could not save Supabase configuration.", error);
+          setNotice("Could not save the database configuration in this browser.", true);
+          return;
+        }
+        els.dialog.close();
+        await loadBoats();
+      }
+
+      function initClient() {
+        const config = getConfig();
+        if (!config || !window.supabase) {
+          if (config && !window.supabase) {
+            setConnected(false, "Supabase client unavailable");
+            setNotice("The Supabase library did not load. Check your internet connection and reload.", true);
+          }
+          return;
+        }
+        els.url.value = config.url;
+        els.key.value = config.key;
+        client = window.supabase.createClient(config.url, config.key);
+        loadBoats();
+      }
+
+      document.getElementById("settings-button").addEventListener("click", () => els.dialog.showModal());
+      document.getElementById("settings-close").addEventListener("click", () => els.dialog.close());
+      document.getElementById("settings-cancel").addEventListener("click", () => els.dialog.close());
+      document.getElementById("connect-button").addEventListener("click", connect);
+      document.getElementById("copy-sql").addEventListener("click", async event => {
+        try {
+          await navigator.clipboard.writeText(sql);
+          event.currentTarget.textContent = "Copied";
+          window.setTimeout(() => { event.currentTarget.textContent = "Copy SQL"; }, 1600);
+        } catch (error) {
+          console.error("Could not copy SQL to the clipboard.", error);
+          event.currentTarget.textContent = "Select and copy";
+        }
+      });
+      els.dialog.addEventListener("click", event => {
+        if (event.target === els.dialog) els.dialog.close();
+      });
+      els.form.addEventListener("submit", saveBoat);
+      els.profileClose.addEventListener("click", clearProfile);
+      document.querySelectorAll(".type-filter").forEach(filter => filter.addEventListener("change", renderMarkers));
+      els.mode.addEventListener("change", () => {
+        refreshHullFilters();
+        renderMarkers();
+        renderTracks();
+      });
+      map.on("zoomend", renderMarkers);
+      map.on("click", event => {
+        document.getElementById("latitude").value = event.latlng.lat.toFixed(5);
+        document.getElementById("longitude").value = event.latlng.lng.toFixed(5);
+        els.mapCard.classList.add("map-picker");
+        window.setTimeout(() => els.mapCard.classList.remove("map-picker"), 500);
+      });
+      document.getElementById("owner-date").value = new Date().toISOString().slice(0, 10);
+      initClient();
+    })();
+  </script>
+</body>
+</html>
