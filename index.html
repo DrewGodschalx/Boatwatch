@@ -172,7 +172,7 @@
         <div class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5h18l-3.1 3.2H7.2L3 16.5Z"/><path d="M12 4v12.5M12 5 5.5 14h6.5M12 7l5.5 7H12"/><path d="M4 21c1.2-.8 2.2-.8 3.4 0 1.2.8 2.2.8 3.4 0 1.2-.8 2.2-.8 3.4 0 1.2.8 2.2.8 3.4 0 1.2-.8 2.2-.8 3.4 0"/></svg>
         </div>
-        <div><div class="brand-name">boatwatch</div><div class="brand-subtitle">Dinghy tracker</div></div>
+        <div><div class="brand-name">boatwatch</div><div class="brand-subtitle">NS14/MG14 tracker - A Drew Godschalx Industries Creation</div></div>
       </div>
       <div class="header-right">
         <div class="connection" aria-live="polite"><span class="status-dot" id="status-dot"></span><span id="connection-label">Connecting to shared boats…</span></div>
@@ -184,7 +184,7 @@
 
     <main>
       <section class="intro">
-        <div><h1>Where are the boats?</h1><p>Explore the fleet, discover each boat’s story, and follow its journey.</p></div>
+        <div><h1>Boat Map</h1><p>Explore the fleet, discover each boat’s story, and follow its journey.</p></div>
         <div class="stat-pill"><strong id="boat-count">0</strong><span>boats on the map</span></div>
       </section>
 
@@ -215,7 +215,7 @@
               <div class="field-grid">
                 <div class="field full"><label for="boat-name">Boat name</label><input id="boat-name" name="name" maxlength="100" placeholder="e.g. Sea Sprite" required></div>
                 <div class="field"><label for="boat-type">Type</label><select id="boat-type" name="boat_type" required><option value="" disabled selected>Select</option><option>NS14</option><option>MG14</option></select></div>
-                <div class="field"><label for="hull-type">Hull design</label><input id="hull-type" name="hull_type" maxlength="80" placeholder="e.g. NS14 Mk 2"></div>
+                <div class="field"><label for="hull-type">Hull design</label><input id="hull-type" name="hull_type" maxlength="80" placeholder="e.g. Midnight"></div>
                 <div class="field full">
                   <label for="location-name">Location</label>
                   <div class="location-autocomplete">
@@ -228,7 +228,7 @@
                 </div>
                 <div class="field"><label for="ns-sail-number">NS sail number</label><input id="ns-sail-number" name="ns_sail_number" maxlength="30" placeholder="Optional"></div>
                 <div class="field"><label for="mg-sail-number">MG sail number</label><input id="mg-sail-number" name="mg_sail_number" maxlength="30" placeholder="Optional"></div>
-                <div class="field full"><label for="owner-name">Owner</label><input id="owner-name" name="owner" maxlength="100" placeholder="Current owner, or Unknown"></div>
+                <div class="field full"><label for="owner-name">Owner</label><input id="owner-name" name="owner" maxlength="100" placeholder="First name, Last name"></div>
                 <div class="field full"><label for="owner-date">Ownership / sighting date</label><input id="owner-date" name="date" type="date"></div>
               </div>
               <p class="form-note">To add a new location or owner to an existing boat, use the same boat name again. Location search automatically sets its coordinates.</p>
