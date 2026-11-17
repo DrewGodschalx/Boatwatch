@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7f8">
-  <title>Boatwatch — Dinghy tracker</title>
+  <title>Boatwatch — NS14/MG14 tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -18,11 +18,63 @@
       --muted: #71838a;
       --line: #e4eaec;
       --paper: #fff;
+      --transparent: transparent;
       --canvas: #f5f7f8;
-      --sea: #136f76;
-      --sea-dark: #0e555d;
+      --sea: #0e555d;
+      --sea-dark: #0c580f;
       --mint: #e6f4f1;
       --coral: #e08766;
+      --status-pending: #d29a51;
+      --status-online: #087804;
+      --border-hover: #b6ccce;
+      --surface-hover: #f8fbfb;
+      --map-background: #dcebed;
+      --toolbar-border: rgb(228 234 236 / 90%);
+      --toolbar-surface: rgb(255 255 255 / 95%);
+      --toolbar-shadow: rgb(23 50 60 / 8%);
+      --boat-search-placeholder: #849397;
+      --sea-focus: rgb(19 111 118 / 18%);
+      --legend-text: #536970;
+      --map-hint-surface: rgb(255 255 255 / 94%);
+      --map-hint-text: #62757b;
+      --field-label: #50656c;
+      --field-border: #e1e8e9;
+      --field-focus: #7aafb1;
+      --sea-focus-subtle: rgb(19 111 118 / 10%);
+      --field-placeholder: #a4b0b4;
+      --error: #ab503e;
+      --empty-profile-border: #dce5e6;
+      --empty-profile-text: #87979b;
+      --history-heading: #5a6e74;
+      --history-text: #64777d;
+      --history-marker: #8eb6b4;
+      --marker-border: #fff;
+      --marker-shadow: rgb(20 49 55 / 30%);
+      --cluster-surface: rgba(0, 17, 252, 0.16);
+      --cluster-background: #364d99;
+      --dialog-shadow: rgb(23 50 60 / 25%);
+      --dialog-backdrop: rgb(16 38 44 / 40%);
+      --code-surface: #f3f6f7;
+      --code-text: #38525b;
+      --secondary-button-text: #536970;
+      --boat-ns: #0da6ffc3;
+      --boat-mg: #f8703fe0;
+      --boat-unknown: #04a922;
+      --hull-color-1: #505ef9;
+      --hull-color-2: #f78055;
+      --hull-color-3: #038a5f;
+      --hull-color-4: #f7c04a;
+      --hull-color-5: #f957b5;
+      --hull-color-6: #3ac1fb;
+      --hull-color-7: #995802;
+      --hull-color-8: #3df4f8;
+      --hull-color-9: #ad3ff6;
+      --hull-color-10: #b8f839;
+      --hull-color-11: #a20054;
+      --hull-color-12: #4b0308;
+      --hull-color-13: #1e7800;
+      --hull-color-14: #00716b;
+      --track-color: #130296d1;
       --shadow: 0 12px 32px rgb(23 50 60 / 8%);
     }
 
@@ -33,52 +85,54 @@
     .shell { max-width: 1540px; margin: 0 auto; padding: 28px 34px 36px; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
     .brand { display: flex; align-items: center; gap: 12px; }
-    .brand-mark { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; background: var(--sea); color: #fff; }
-    .brand-mark svg { width: 24px; height: 24px; }
     .brand-name { font: 800 20px/1 "Manrope", sans-serif; letter-spacing: -.7px; }
     .brand-subtitle { margin-top: 5px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 1.35px; text-transform: uppercase; }
     .header-right { display: flex; align-items: center; gap: 14px; }
     .connection { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #d29a51; }
-    .status-dot.online { background: #45a482; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--status-pending); }
+    .status-dot.online { background: var(--status-online); }
     .settings-button, .icon-button { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); }
-    .settings-button:hover, .icon-button:hover { border-color: #b6ccce; background: #f8fbfb; }
+    .settings-button:hover, .icon-button:hover { border-color: var(--border-hover); background: var(--surface-hover); }
     .settings-button svg, .icon-button svg { width: 17px; height: 17px; }
     .intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin: 0 0 18px; }
+    .intro-row { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; width: 100%; }
+    .map-meta-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 8px; }
     h1 { margin: 0; font: 800 clamp(25px, 3vw, 35px)/1.15 "Manrope", sans-serif; letter-spacing: -1.15px; }
     .intro p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
-    .stat-pill { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 99px; background: var(--paper); color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .stat-pill { display: flex; align-items: center; gap: 8px; padding: 9px 13px; margin: 0; border: 1px solid var(--line); border-radius: 99px; background: var(--paper); color: var(--muted); font-size: 12px; white-space: nowrap; }
     .stat-pill strong { color: var(--ink); font-size: 14px; }
     .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 18px; align-items: stretch; }
     .map-card, .panel { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: var(--shadow); }
     .map-card { position: relative; min-height: 610px; }
-    #map { position: absolute; inset: 0; background: #dcebed; }
-    .map-toolbar { position: absolute; z-index: 500; top: 14px; left: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: calc(100% - 28px); }
-    .toolbar-chip { display: inline-flex; min-height: 36px; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid rgb(228 234 236 / 90%); border-radius: 11px; background: rgb(255 255 255 / 95%); color: var(--ink); font-size: 11px; box-shadow: 0 3px 12px rgb(23 50 60 / 8%); backdrop-filter: blur(8px); }
-    .toolbar-chip select { max-width: 125px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 11px; font-weight: 600; }
-    .boat-search { position: relative; }
-    .boat-search input { width: 190px; height: 34px; padding: 0 9px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 11px; }
-    .boat-search input::placeholder { color: #849397; }
-    .boat-search input:focus { box-shadow: inset 0 0 0 2px rgb(19 111 118 / 18%); }
-    .boat-suggestions { position: absolute; z-index: 1000; top: calc(100% + 5px); left: 0; width: min(310px, calc(100vw - 48px)); max-height: 250px; overflow-y: auto; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
+    #map { position: absolute; inset: 0; background: var(--map-background); }
+    .leaflet-control-zoom,
+    .leaflet-control-attribution { display: none !important; }
+    .map-toolbar { position: absolute; z-index: 500; top: 14px; left: 14px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; max-width: calc(100% - 28px); }
+    .toolbar-chip { display: inline-flex; min-height: 36px; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--toolbar-border); border-radius: 11px; background: var(--toolbar-surface); color: var(--ink); font-size: 11px; box-shadow: 0 3px 12px var(--toolbar-shadow); backdrop-filter: blur(8px); }
+    .toolbar-chip select { max-width: 125px; border: 0; outline: 0; background: var(--transparent); color: var(--ink); font-size: 11px; font-weight: 600; }
+    .boat-search { position: relative; z-index: 1; display: grid; flex: 0 1 min(240px, calc(100vw - 48px)); grid-template-columns: minmax(0, 1fr); align-content: start; }
+    .boat-search input { width: 100%; min-width: 0; height: 34px; padding: 0 9px; border: 0; outline: 0; background: var(--transparent); color: var(--ink); font-size: 11px; }
+    .boat-search input::placeholder { color: var(--boat-search-placeholder); }
+    .boat-search input:focus { box-shadow: inset 0 0 0 2px var(--sea-focus); }
+    .boat-suggestions { position: static; grid-column: 1; width: 100%; max-height: 250px; overflow-y: auto; margin: 0 0 8px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: var(--shadow); }
     .boat-suggestions[hidden] { display: none; }
-    .boat-suggestions button, .boat-suggestions .empty-result { display: block; width: 100%; padding: 9px; border: 0; border-radius: 7px; background: #fff; color: var(--ink); text-align: left; }
+    .boat-suggestions button, .boat-suggestions .empty-result { display: block; width: 100%; padding: 9px; border: 0; border-radius: 7px; background: var(--paper); color: var(--ink); text-align: left; }
     .boat-suggestions button:hover, .boat-suggestions button:focus { outline: none; background: var(--mint); }
     .boat-suggestion-name { display: block; font-size: 11px; font-weight: 700; }
     .boat-suggestion-details, .boat-suggestions .empty-result { margin-top: 3px; color: var(--muted); font-size: 10px; }
     .sighting-name-picker { position: relative; }
-    .sighting-suggestions { position: absolute; z-index: 1000; top: calc(100% + 3px); right: 0; left: 0; max-height: 210px; overflow-y: auto; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: #fff; box-shadow: var(--shadow); }
+    .sighting-suggestions { position: absolute; z-index: 1000; top: calc(100% + 3px); right: 0; left: 0; max-height: 210px; overflow-y: auto; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); box-shadow: var(--shadow); }
     .sighting-suggestions[hidden] { display: none; }
-    .sighting-suggestions button, .sighting-suggestions .empty-result { display: block; width: 100%; padding: 9px; border: 0; border-radius: 6px; background: #fff; color: var(--ink); text-align: left; }
+    .sighting-suggestions button, .sighting-suggestions .empty-result { display: block; width: 100%; padding: 9px; border: 0; border-radius: 6px; background: var(--paper); color: var(--ink); text-align: left; }
     .sighting-suggestions button:hover, .sighting-suggestions button:focus { outline: none; background: var(--mint); }
     .sighting-suggestions .boat-suggestion-details, .sighting-suggestions .empty-result { margin-top: 3px; color: var(--muted); font-size: 10px; }
     .filter-chip { position: relative; }
     .filter-chip input { accent-color: var(--sea); }
     .filter-key { width: 8px; height: 8px; border-radius: 50%; }
-    .legend-hull { display: none; flex-wrap: wrap; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid rgb(228 234 236 / 90%); border-radius: 11px; background: rgb(255 255 255 / 95%); box-shadow: 0 3px 12px rgb(23 50 60 / 8%); }
-    .legend-item { display: inline-flex; align-items: center; gap: 5px; color: #536970; font-size: 10px; }
+    .legend-hull { display: none; flex-wrap: wrap; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid var(--toolbar-border); border-radius: 11px; background: var(--toolbar-surface); box-shadow: 0 3px 12px var(--toolbar-shadow); }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; color: var(--legend-text); font-size: 10px; }
     .legend-item .filter-key { width: 7px; height: 7px; }
-    .map-hint { position: absolute; z-index: 400; right: 14px; bottom: 34px; max-width: 245px; padding: 9px 12px; border: 1px solid rgb(228 234 236 / 90%); border-radius: 10px; background: rgb(255 255 255 / 94%); color: #62757b; font-size: 11px; line-height: 1.4; box-shadow: 0 3px 12px rgb(23 50 60 / 8%); }
+    .map-hint { position: absolute; z-index: 400; top: 14px; right: 14px; max-width: 245px; padding: 9px 12px; border: 1px solid var(--toolbar-border); border-radius: 10px; background: var(--map-hint-surface); color: var(--map-hint-text); font-size: 11px; line-height: 1.4; box-shadow: 0 3px 12px var(--toolbar-shadow); }
     .side-column { display: flex; flex-direction: column; gap: 16px; }
     .panel { padding: 19px; }
     .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
@@ -89,63 +143,64 @@
     .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 10px; }
     .field { min-width: 0; }
     .field.full { grid-column: 1 / -1; }
-    .field label { display: block; margin-bottom: 6px; color: #50656c; font-size: 11px; font-weight: 700; }
-    .field input, .field select { width: 100%; height: 39px; padding: 0 10px; border: 1px solid #e1e8e9; border-radius: 9px; outline: none; background: #fff; color: var(--ink); font-size: 12px; }
-    .field input:focus, .field select:focus { border-color: #7aafb1; box-shadow: 0 0 0 3px rgb(19 111 118 / 10%); }
-    .field input::placeholder { color: #a4b0b4; }
+    .field label { display: block; margin-bottom: 6px; color: var(--field-label); font-size: 11px; font-weight: 700; }
+    .field input, .field select { width: 100%; height: 39px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 9px; outline: none; background: var(--paper); color: var(--ink); font-size: 12px; }
+    .field input:focus, .field select:focus { border-color: var(--field-focus); box-shadow: 0 0 0 3px var(--sea-focus-subtle); }
+    .field input::placeholder { color: var(--field-placeholder); }
     .location-autocomplete { position: relative; }
     .field-hint { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.4; }
-    .location-suggestions { position: absolute; z-index: 1000; top: calc(100% + 3px); right: 0; left: 0; max-height: 210px; overflow-y: auto; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: #fff; box-shadow: var(--shadow); }
+    .location-suggestions { position: absolute; z-index: 1000; top: calc(100% + 3px); right: 0; left: 0; max-height: 210px; overflow-y: auto; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); box-shadow: var(--shadow); }
     .location-suggestions[hidden] { display: none; }
-    .location-suggestions button { width: 100%; padding: 9px; border: 0; border-radius: 6px; background: #fff; color: var(--ink); text-align: left; font-size: 11px; }
+    .location-suggestions button { width: 100%; padding: 9px; border: 0; border-radius: 6px; background: var(--paper); color: var(--ink); text-align: left; font-size: 11px; }
     .location-suggestions button:hover, .location-suggestions button:focus { outline: none; background: var(--mint); }
     .form-note { margin: 11px 0 13px; color: var(--muted); font-size: 10px; line-height: 1.45; }
-    .primary-button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; background: var(--sea); color: white; font-size: 12px; font-weight: 700; transition: background .15s, transform .15s; }
+    .primary-button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; background: var(--sea); color: var(--paper); font-size: 12px; font-weight: 700; transition: background .15s, transform .15s; }
     .primary-button:hover:not(:disabled) { transform: translateY(-1px); background: var(--sea-dark); }
     .primary-button:disabled { cursor: wait; opacity: .65; }
     .primary-button svg { width: 16px; height: 16px; }
     .notice { margin-top: 10px; color: var(--muted); font-size: 10px; line-height: 1.45; }
-    .notice.error { color: #ab503e; }
+    .notice.error { color: var(--error); }
     .profile-panel { min-height: 174px; }
-    .empty-profile { display: grid; min-height: 92px; place-items: center; padding: 8px; border: 1px dashed #dce5e6; border-radius: 11px; color: #87979b; text-align: center; font-size: 11px; line-height: 1.6; }
+    .empty-profile { display: grid; min-height: 92px; place-items: center; padding: 8px; border: 1px dashed var(--empty-profile-border); border-radius: 11px; color: var(--empty-profile-text); text-align: center; font-size: 11px; line-height: 1.6; }
     .profile-content { display: none; }
     .profile-name { margin: 0 0 4px; font: 700 18px/1.25 "Manrope", sans-serif; letter-spacing: -.5px; }
     .profile-tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 99px; background: var(--mint); color: var(--sea-dark); font-size: 10px; font-weight: 700; }
     .profile-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
     .meta-label { margin-bottom: 3px; color: var(--muted); font-size: 10px; }
     .meta-value { color: var(--ink); font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
-    .history-title { margin: 15px 0 8px; color: #5a6e74; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+    .history-title { margin: 15px 0 8px; color: var(--history-heading); font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
     .history-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-    .history-item { position: relative; padding-left: 13px; color: #64777d; font-size: 11px; line-height: 1.45; }
-    .history-item::before { position: absolute; top: 4px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: #8eb6b4; content: ""; }
+    .history-item { position: relative; padding-left: 13px; color: var(--history-text); font-size: 11px; line-height: 1.45; }
+    .history-item::before { position: absolute; top: 4px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--history-marker); content: ""; }
     .history-item strong { color: var(--ink); font-weight: 600; }
-    .track-toggle { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); color: #50656c; font-size: 11px; font-weight: 600; }
+    .track-toggle { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--field-label); font-size: 11px; font-weight: 600; }
     .track-toggle input { accent-color: var(--sea); }
     .profile-close { width: 28px; height: 28px; }
     .leaflet-container { font-family: "DM Sans", sans-serif; }
-    .boat-marker { display: flex; min-width: 22px; height: 22px; align-items: center; justify-content: center; border: 2px solid #fff; border-radius: 50%; color: #fff; box-shadow: 0 2px 6px rgb(20 49 55 / 30%); }
+    .boat-marker { display: flex; min-width: 22px; height: 22px; align-items: center; justify-content: center; border: 2px solid var(--marker-border); border-radius: 50%; color: var(--marker-border); box-shadow: 0 2px 6px var(--marker-shadow); }
     .boat-marker span { display: none; }
     .boat-marker.named { width: auto; height: 27px; justify-content: flex-start; padding: 0 9px 0 7px; border-radius: 99px; white-space: nowrap; }
-    .boat-marker.named .marker-dot { width: 8px; height: 8px; flex: 0 0 auto; margin-right: 6px; border-radius: 50%; background: #fff; }
+    .boat-marker.named .marker-dot { width: 8px; height: 8px; flex: 0 0 auto; margin-right: 6px; border-radius: 50%; background: var(--marker-border); }
     .boat-marker.named span { display: inline; max-width: 142px; overflow: hidden; font-size: 10px; font-weight: 700; text-overflow: ellipsis; }
-    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: rgb(19 111 118 / 16%); }
-    .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background-color: #136f76; color: #fff; font-family: "DM Sans", sans-serif; font-weight: 700; }
+    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: var(--cluster-surface); }
+    .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background-color: var(--cluster-background); color: var(--marker-border); font-family: "DM Sans", sans-serif; font-weight: 700; }
+    .leaflet-marker-icon.cluster-spiderfied { visibility: hidden; }
     .leaflet-popup-content-wrapper { border-radius: 12px; }
     .leaflet-popup-content { margin: 12px 15px; font: 12px/1.5 "DM Sans", sans-serif; }
     .leaflet-popup-content strong { font-family: "Manrope", sans-serif; }
     .map-picker { cursor: crosshair !important; }
-    dialog { width: min(660px, calc(100% - 28px)); max-height: min(86vh, 780px); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); box-shadow: 0 24px 80px rgb(23 50 60 / 25%); }
-    dialog::backdrop { background: rgb(16 38 44 / 40%); backdrop-filter: blur(3px); }
+    dialog { width: min(660px, calc(100% - 28px)); max-height: min(86vh, 780px); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); box-shadow: 0 24px 80px var(--dialog-shadow); }
+    dialog::backdrop { background: var(--dialog-backdrop); backdrop-filter: blur(3px); }
     .dialog-inner { padding: 22px; }
     .dialog-top { display: flex; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
     .dialog-top h2 { margin: 0; font: 700 19px "Manrope", sans-serif; }
     .dialog-top p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
     .sql-wrap { margin-top: 17px; }
-    .sql-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; color: #50656c; font-size: 11px; font-weight: 700; }
-    .copy-button { padding: 5px 9px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--sea); font-size: 10px; font-weight: 700; }
-    pre { max-height: 235px; overflow: auto; margin: 0; padding: 12px; border-radius: 9px; background: #f3f6f7; color: #38525b; font: 10px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .sql-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; color: var(--field-label); font-size: 11px; font-weight: 700; }
+    .copy-button { padding: 5px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--sea); font-size: 10px; font-weight: 700; }
+    pre { max-height: 235px; overflow: auto; margin: 0; padding: 12px; border-radius: 9px; background: var(--code-surface); color: var(--code-text); font: 10px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
     .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; }
-    .secondary-button { min-height: 38px; padding: 0 13px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: #536970; font-size: 11px; font-weight: 700; }
+    .secondary-button { min-height: 38px; padding: 0 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--secondary-button-text); font-size: 11px; font-weight: 700; }
     .dialog-actions .primary-button { width: auto; min-height: 38px; padding: 0 14px; }
     .fine-print { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.5; }
     @media (max-width: 1030px) {
@@ -167,7 +222,6 @@
       .input-panel { grid-row: span 2; }
     }
     @media (max-width: 540px) {
-      .brand-mark { width: 38px; height: 38px; }
       .brand-name { font-size: 18px; }
       .intro { display: block; }
       .stat-pill { display: inline-flex; margin-top: 12px; }
@@ -177,8 +231,8 @@
       .profile-panel { order: 1; }
       .toolbar-chip { min-height: 33px; padding: 0 8px; font-size: 10px; }
       .toolbar-chip select { max-width: 103px; font-size: 10px; }
-      .boat-search input { width: min(165px, calc(100vw - 135px)); font-size: 10px; }
-      .boat-suggestions { width: min(290px, calc(100vw - 48px)); }
+      .boat-search { flex-basis: min(210px, calc(100vw - 48px)); }
+      .boat-search input { font-size: 10px; }
       .map-hint { right: 10px; bottom: 30px; max-width: 195px; font-size: 10px; }
     }
   </style>
@@ -187,10 +241,7 @@
   <div class="shell">
     <header>
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5h18l-3.1 3.2H7.2L3 16.5Z"/><path d="M12 4v12.5M12 5 5.5 14h6.5M12 7l5.5 7H12"/><path d="M4 21c1.2-.8 2.2-.8 3.4 0 1.2.8 2.2.8 3.4 0 1.2-.8 2.2-.8 3.4 0 1.2.8 2.2.8 3.4 0 1.2-.8 2.2-.8 3.4 0"/></svg>
-        </div>
-        <div><div class="brand-name">boatwatch</div><div class="brand-subtitle">NS14/MG14 tracker - A Drew Godschalx Industries Creation</div></div>
+        <div><H1 style="color: var(--sea);">Boatwatch</H1><div class="brand-subtitle">NS14/MG14 tracker - A Drew Godschalx Industries Creation</div></div>
       </div>
       <div class="header-right">
         <div class="connection" aria-live="polite"><span class="status-dot" id="status-dot"></span><span id="connection-label">Connecting to shared boats…</span></div>
@@ -202,8 +253,21 @@
 
     <main>
       <section class="intro">
-        <div><h1>Boat Map</h1><p>Explore the fleet, discover each boat’s story, and follow its journey.</p></div>
-        <div class="stat-pill"><strong id="boat-count">0</strong><span>boats on the map</span></div>
+        <div class="intro-row">
+          <div class="brand-name">Boat Map</div>
+          <div class="map-meta-tools">
+            <div class="stat-pill"><strong id="boat-count">0</strong><span>boats on the map</span></div>
+            <label class="toolbar-chip">Colour by
+              <select id="color-mode" aria-label="Choose pin colour category">
+                <option value="type">Boat type</option>
+                <option value="hull">Hull design</option>
+              </select>
+            </label>
+            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="NS14" checked><span class="filter-key" style="background:var(--boat-ns)"></span>NS14</label>
+            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="MG14" checked><span class="filter-key" style="background:var(--boat-mg)"></span>MG14</label>
+            <div class="legend-hull" id="hull-filters" aria-label="Filter by hull design"></div>
+          </div>
+        </div>
       </section>
 
       <div class="workspace">
@@ -214,15 +278,6 @@
               <input id="boat-search" type="search" placeholder="Find a boat, owner or sail no." autocomplete="off" aria-label="Search boats by name, owner or sail number" aria-autocomplete="list" aria-controls="boat-suggestions" aria-expanded="false">
               <div class="boat-suggestions" id="boat-suggestions" role="listbox" hidden></div>
             </div>
-            <label class="toolbar-chip">Colour by
-              <select id="color-mode" aria-label="Choose pin colour category">
-                <option value="type">Boat type</option>
-                <option value="hull">Hull design</option>
-              </select>
-            </label>
-            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="NS14" checked><span class="filter-key" style="background:#138b86"></span>NS14</label>
-            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="MG14" checked><span class="filter-key" style="background:#e08766"></span>MG14</label>
-            <div class="legend-hull" id="hull-filters" aria-label="Filter by hull design"></div>
           </div>
           <div class="map-hint">Search a boat to find it and open its profile. Search a place or click the map to set a sighting location.</div>
         </section>
@@ -344,17 +399,30 @@ create policy "Anyone can update boats"
         url: "https://dbokghwudsilkfggwecs.supabase.co",
         key: "sb_publishable_X4JrW8rfz9oNA_QT6QgKKA_tLZSjhHD"
       });
-      const NS_COLOR = "#138b86";
-      const MG_COLOR = "#e08766";
-      const UNKNOWN_COLOR = "#788b91";
-      const HULL_PALETTE = ["#6e75c8", "#bd7256", "#318f72", "#ca9b38", "#b65e91", "#3f86b8", "#8a704f", "#569b9c", "#925db5", "#697d42"];
+      const cssColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      document.querySelector('meta[name="theme-color"]').content = cssColor("--canvas");
+      const NS_COLOR = cssColor("--boat-ns");
+      const MG_COLOR = cssColor("--boat-mg");
+      const UNKNOWN_COLOR = cssColor("--boat-unknown");
+      const HULL_PALETTE = Array.from({ length: 30 }, (_, index) => cssColor(`--hull-color-${index + 1}`));
       const sql = document.getElementById("setup-sql").textContent;
-      const map = L.map("map", { worldCopyJump: true, minZoom: 2 }).setView([-25, 135], 3);
+      const map = L.map("map", {
+        worldCopyJump: true,
+        minZoom: 2,
+        zoomControl: false,
+        attributionControl: false
+      }).setView([-25, 135], 3);
       L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
         maxZoom: 19,
-        attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Sources: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, HERE, Garmin, and the GIS user community'
+        attribution: ''
       }).addTo(map);
-      const markers = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 48, spiderfyOnMaxZoom: true });
+      const markers = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 48,
+        zoomToBoundsOnClick: true,
+        spiderfyOnMaxZoom: true,
+        spiderfyDistanceMultiplier: 4
+      });
       map.addLayer(markers);
 
       const els = {
@@ -729,6 +797,23 @@ create policy "Anyone can update boats"
         }
       }
 
+      function refreshMarkerIcons() {
+        for (const boat of boats) {
+          const marker = markerById.get(boat.id);
+          if (marker) marker.setIcon(markerIcon(boat));
+        }
+      }
+
+      function spiderfyVisibleClusters() {
+        if (map.getZoom() < map.getMaxZoom()) return;
+        const clusters = new Set();
+        for (const marker of markerById.values()) {
+          const parent = markers.getVisibleParent(marker);
+          if (parent && typeof parent.spiderfy === "function") clusters.add(parent);
+        }
+        for (const cluster of clusters) cluster.spiderfy();
+      }
+
       function renderTracks() {
         for (const line of tracksById.values()) map.removeLayer(line);
         tracksById.clear();
@@ -739,7 +824,7 @@ create policy "Anyone can update boats"
             .map(coordinatePair)
             .filter(point => point !== null);
           if (points.length < 2) continue;
-          const line = L.polyline(points, { color: "#e53935", weight: 5, opacity: .95 }).addTo(map);
+          const line = L.polyline(points, { color: cssColor("--track-color"), weight: 5, opacity: .95 }).addTo(map);
           line.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong> · movement path`);
           tracksById.set(id, line);
         }
@@ -1025,7 +1110,13 @@ create policy "Anyone can update boats"
         renderMarkers();
         renderTracks();
       });
-      map.on("zoomend", renderMarkers);
+      markers.on("animationend", spiderfyVisibleClusters);
+      markers.on("spiderfied", event => event.cluster.getElement()?.classList.add("cluster-spiderfied"));
+      markers.on("unspiderfied", event => event.cluster.getElement()?.classList.remove("cluster-spiderfied"));
+      map.on("zoomend", () => {
+        refreshMarkerIcons();
+        if (map.getZoom() === map.getMaxZoom()) window.setTimeout(spiderfyVisibleClusters, 600);
+      });
       map.on("click", event => {
         els.latitude.value = event.latlng.lat.toFixed(6);
         els.longitude.value = event.latlng.lng.toFixed(6);
