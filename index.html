@@ -180,6 +180,7 @@
     .leaflet-popup-content strong { font-family: "Manrope", sans-serif; }
     .track-location-tooltip { max-width: 132px; padding: 3px 6px; font-size: 9px; line-height: 1.2; text-align: center; }
     .track-location-tooltip .track-location-name { display: block; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .track-location-tooltip .track-location-owner { display: block; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
     .track-location-tooltip .track-location-date { display: block; font-size: 8px; }
     .map-picker { cursor: crosshair !important; }
     dialog { width: min(660px, calc(100% - 28px)); max-height: min(86vh, 780px); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); box-shadow: 0 24px 80px var(--dialog-shadow); }
@@ -429,6 +430,30 @@ create policy "Anyone can update boats"
         if (!value) return "Date unknown";
         const parsed = new Date(value.length === 10 ? `${value}T00:00:00` : value);
         return Number.isNaN(parsed.getTime()) ? "Date unknown" : parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+      }
+
+      function ownersAtDate(boat, date) {
+        const owners = Array.isArray(boat.owners) ? boat.owners : [];
+        const timestamp = dateTimestamp(date);
+        const matchingOwners = owners.filter(owner => {
+          if (timestamp === null) return !owner.to;
+          const from = dateTimestamp(owner.from);
+          const to = dateTimestamp(owner.to);
+          return (from === null || from <= timestamp) && (to === null || timestamp <= to);
+        });
+        const owner = matchingOwners.reduce((latest, candidate) => {
+          if (!latest) return candidate;
+          const candidateStart = dateTimestamp(candidate.from) ?? Number.NEGATIVE_INFINITY;
+          const latestStart = dateTimestamp(latest.from) ?? Number.NEGATIVE_INFINITY;
+          return candidateStart >= latestStart ? candidate : latest;
+        }, null);
+        const name = owner?.name == null ? "" : String(owner.name).trim();
+        return name ? [name] : [];
+      }
+
+      function ownerNamesForTrackEntry(boat, entry) {
+        const recordedOwner = typeof entry.owner === "string" ? entry.owner.trim() : "";
+        return recordedOwner ? [recordedOwner] : ownersAtDate(boat, entry.date);
       }
 
       function colorFor(boat) {
@@ -762,8 +787,9 @@ create policy "Anyone can update boats"
               fillOpacity: 1
             }).addTo(map);
             marker.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong><br>${escapeHtml(text(entry.location))}<br>${escapeHtml(dateLabel(entry.date))}`);
+            const ownerNames = ownerNamesForTrackEntry(boat, entry);
             marker.bindTooltip(
-              `<span class="track-location-name">${escapeHtml(text(entry.location))}</span><span class="track-location-date">${escapeHtml(dateLabel(entry.date))}</span>`,
+              `<span class="track-location-name">${escapeHtml(text(entry.location))}</span>${ownerNames.length ? `<span class="track-location-owner"> ${escapeHtml(ownerNames.join(", "))}</span>` : ""}<span class="track-location-date">${escapeHtml(dateLabel(entry.date))}</span>`,
               { permanent: true, direction: "top", offset: [0, -8], opacity: 0.92, className: "track-location-tooltip" }
             );
             trackLocationMarkers.add(marker);
@@ -901,7 +927,7 @@ create policy "Anyone can update boats"
           owners.push({ name: ownerName, from: date, to: null });
         }
         const track = sortTrack(existing ? existing.track : []);
-        track.push({ location, lat, lon, date });
+        track.push({ location, lat, lon, date, owner: ownerName });
         const currentLocation = track.at(-1);
         const record = {
           ...(existing || {}),
