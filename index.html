@@ -1,17 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5f7f8">
-  <title>Boatwatch — NS14/MG14 tracker</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <style>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=theme-color content=#f5f7f8><title>Boatwatch — NS14/MG14 tracker</title><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel=stylesheet><link rel=stylesheet href=https://unpkg.com/leaflet@1.9.4/dist/leaflet.css><link rel=stylesheet href=https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css><link rel=stylesheet href=https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css><style>
     :root {
       color-scheme: light;
       --ink: #17323c;
@@ -75,6 +62,7 @@
       --hull-color-13: #1e7800;
       --hull-color-14: #00716b;
       --track-color: #130296d1;
+      --arrow-color: #130296;
       --shadow: 0 12px 32px rgb(23 50 60 / 8%);
     }
 
@@ -86,6 +74,7 @@
     header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
     .brand { display: flex; align-items: center; gap: 12px; }
     .brand-name { font: 800 20px/1 "Manrope", sans-serif; letter-spacing: -.7px; }
+    .brand-title { margin: 0; color: var(--sea); font: 800 20px/1 "Manrope", sans-serif; letter-spacing: -.7px; }
     .brand-subtitle { margin-top: 5px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 1.35px; text-transform: uppercase; }
     .header-right { display: flex; align-items: center; gap: 14px; }
     .connection { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
@@ -109,7 +98,7 @@
     .leaflet-control-attribution { display: none !important; }
     .map-toolbar { position: absolute; z-index: 500; top: 14px; left: 14px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; max-width: calc(100% - 28px); }
     .toolbar-chip { display: inline-flex; min-height: 36px; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--toolbar-border); border-radius: 11px; background: var(--toolbar-surface); color: var(--ink); font-size: 11px; box-shadow: 0 3px 12px var(--toolbar-shadow); backdrop-filter: blur(8px); }
-    .toolbar-chip select { max-width: 125px; border: 0; outline: 0; background: var(--transparent); color: var(--ink); font-size: 11px; font-weight: 600; }
+    .toolbar-chip select { max-width: 225px; border: 0; outline: 0; background: var(--transparent); color: var(--ink); font-size: 11px; font-weight: 600; }
     .boat-search { position: relative; z-index: 1; display: grid; flex: 0 1 min(240px, calc(100vw - 48px)); grid-template-columns: minmax(0, 1fr); align-content: start; }
     .boat-search input { width: 100%; min-width: 0; height: 34px; padding: 0 9px; border: 0; outline: 0; background: var(--transparent); color: var(--ink); font-size: 11px; }
     .boat-search input::placeholder { color: var(--boat-search-placeholder); }
@@ -164,6 +153,7 @@
     .empty-profile { display: grid; min-height: 92px; place-items: center; padding: 8px; border: 1px dashed var(--empty-profile-border); border-radius: 11px; color: var(--empty-profile-text); text-align: center; font-size: 11px; line-height: 1.6; }
     .profile-content { display: none; }
     .profile-name { margin: 0 0 4px; font: 700 18px/1.25 "Manrope", sans-serif; letter-spacing: -.5px; }
+    .profile-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     .profile-tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 99px; background: var(--mint); color: var(--sea-dark); font-size: 10px; font-weight: 700; }
     .profile-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
     .meta-label { margin-bottom: 3px; color: var(--muted); font-size: 10px; }
@@ -188,6 +178,9 @@
     .leaflet-popup-content-wrapper { border-radius: 12px; }
     .leaflet-popup-content { margin: 12px 15px; font: 12px/1.5 "DM Sans", sans-serif; }
     .leaflet-popup-content strong { font-family: "Manrope", sans-serif; }
+    .track-location-tooltip { max-width: 132px; padding: 3px 6px; font-size: 9px; line-height: 1.2; text-align: center; }
+    .track-location-tooltip .track-location-name { display: block; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .track-location-tooltip .track-location-date { display: block; font-size: 8px; }
     .map-picker { cursor: crosshair !important; }
     dialog { width: min(660px, calc(100% - 28px)); max-height: min(86vh, 780px); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); box-shadow: 0 24px 80px var(--dialog-shadow); }
     dialog::backdrop { background: var(--dialog-backdrop); backdrop-filter: blur(3px); }
@@ -203,6 +196,7 @@
     .secondary-button { min-height: 38px; padding: 0 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--secondary-button-text); font-size: 11px; font-weight: 700; }
     .dialog-actions .primary-button { width: auto; min-height: 38px; padding: 0 14px; }
     .fine-print { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .wider { width: 200%; max-width: 300px; }
     @media (max-width: 1030px) {
       .shell { padding: 22px; }
       .workspace { grid-template-columns: minmax(0, 1fr) 320px; gap: 13px; }
@@ -223,6 +217,7 @@
     }
     @media (max-width: 540px) {
       .brand-name { font-size: 18px; }
+      .brand-title { font-size: 18px; }
       .intro { display: block; }
       .stat-pill { display: inline-flex; margin-top: 12px; }
       .map-card { height: 420px; min-height: 420px; }
@@ -230,123 +225,12 @@
       .input-panel { order: 0; }
       .profile-panel { order: 1; }
       .toolbar-chip { min-height: 33px; padding: 0 8px; font-size: 10px; }
-      .toolbar-chip select { max-width: 103px; font-size: 10px; }
+      .toolbar-chip select { max-width: 203px; font-size: 10px; }
       .boat-search { flex-basis: min(210px, calc(100vw - 48px)); }
       .boat-search input { font-size: 10px; }
       .map-hint { right: 10px; bottom: 30px; max-width: 195px; font-size: 10px; }
     }
-  </style>
-</head>
-<body>
-  <div class="shell">
-    <header>
-      <div class="brand">
-        <div><H1 style="color: var(--sea);">Boatwatch</H1><div class="brand-subtitle">NS14/MG14 tracker - A Drew Godschalx Industries Creation</div></div>
-      </div>
-      <div class="header-right">
-        <div class="connection" aria-live="polite"><span class="status-dot" id="status-dot"></span><span id="connection-label">Connecting to shared boats…</span></div>
-        <button class="settings-button" id="settings-button" aria-label="Database settings" title="Database settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1.9-1.6 2.8-1.4-.5a7.6 7.6 0 0 1-1.6.9l-.2 1.5h-3.2l-.2-1.5a7.6 7.6 0 0 1-1.6-.9l-1.4.5-1.6-2.8 1.1-.9a7.3 7.3 0 0 1 0-1.8l-1.1-.9 1.6-2.8 1.4.5a7.6 7.6 0 0 1 1.6-.9l.2-1.5h3.2l.2 1.5a7.6 7.6 0 0 1 1.6.9l1.4-.5 1.6 2.8-1.1.9a7.3 7.3 0 0 1 0 1.7Z"/></svg>
-        </button>
-      </div>
-    </header>
-
-    <main>
-      <section class="intro">
-        <div class="intro-row">
-          <div class="brand-name">Boat Map</div>
-          <div class="map-meta-tools">
-            <div class="stat-pill"><strong id="boat-count">0</strong><span>boats on the map</span></div>
-            <label class="toolbar-chip">Colour by
-              <select id="color-mode" aria-label="Choose pin colour category">
-                <option value="type">Boat type</option>
-                <option value="hull">Hull design</option>
-              </select>
-            </label>
-            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="NS14" checked><span class="filter-key" style="background:var(--boat-ns)"></span>NS14</label>
-            <label class="toolbar-chip filter-chip"><input type="checkbox" class="type-filter" value="MG14" checked><span class="filter-key" style="background:var(--boat-mg)"></span>MG14</label>
-            <div class="legend-hull" id="hull-filters" aria-label="Filter by hull design"></div>
-          </div>
-        </div>
-      </section>
-
-      <div class="workspace">
-        <section class="map-card" aria-label="Boat locations map">
-          <div id="map" role="application" aria-label="Interactive world map"></div>
-          <div class="map-toolbar">
-            <div class="toolbar-chip boat-search">
-              <input id="boat-search" type="search" placeholder="Find a boat, owner or sail no." autocomplete="off" aria-label="Search boats by name, owner or sail number" aria-autocomplete="list" aria-controls="boat-suggestions" aria-expanded="false">
-              <div class="boat-suggestions" id="boat-suggestions" role="listbox" hidden></div>
-            </div>
-          </div>
-          <div class="map-hint">Search a boat to find it and open its profile. Search a place or click the map to set a sighting location.</div>
-        </section>
-
-        <aside class="side-column">
-          <section class="panel input-panel">
-            <div class="panel-heading">
-              <div><h2>Add a boat sighting</h2><p>Submissions are shared publicly with everyone.</p></div>
-              <span class="heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="9"/></svg></span>
-            </div>
-            <form id="boat-form">
-              <div class="field-grid">
-                <div class="field full">
-                  <label for="boat-name">Boat name</label>
-                  <div class="sighting-name-picker">
-                    <input id="boat-name" name="name" maxlength="100" placeholder="e.g. Sea Sprite" autocomplete="off" aria-autocomplete="list" aria-controls="sighting-suggestions" aria-expanded="false" required>
-                    <div class="sighting-suggestions" id="sighting-suggestions" role="listbox" hidden></div>
-                  </div>
-                  <div class="field-hint">Type a boat name to select an existing boat and reuse its details.</div>
-                </div>
-                <div class="field"><label for="boat-type">Type</label><select id="boat-type" name="boat_type" required><option value="" disabled selected>Select</option><option>NS14</option><option>MG14</option></select></div>
-                <div class="field"><label for="hull-type">Hull design</label><input id="hull-type" name="hull_type" maxlength="80" placeholder="e.g. Midnight"></div>
-                <div class="field full">
-                  <label for="location-name">Location</label>
-                  <div class="location-autocomplete">
-                    <input id="location-name" name="location" maxlength="160" placeholder="Search for a club, harbour or town" autocomplete="off" aria-autocomplete="list" aria-controls="location-suggestions" aria-expanded="false" required>
-                    <div class="location-suggestions" id="location-suggestions" role="listbox" hidden></div>
-                  </div>
-                  <div class="field-hint" id="location-hint" aria-live="polite">Choose a search result to set the map position, or click the map.</div>
-                  <input id="latitude" name="lat" type="hidden">
-                  <input id="longitude" name="lon" type="hidden">
-                </div>
-                <div class="field"><label for="ns-sail-number">NS sail number</label><input id="ns-sail-number" name="ns_sail_number" maxlength="30" placeholder="Optional"></div>
-                <div class="field"><label for="mg-sail-number">MG sail number</label><input id="mg-sail-number" name="mg_sail_number" maxlength="30" placeholder="Optional"></div>
-                <div class="field full"><label for="owner-name">Owner</label><input id="owner-name" name="owner" maxlength="100" placeholder="First name, Last name"></div>
-                <div class="field full"><label for="owner-date">Ownership / sighting date</label><input id="owner-date" name="date" type="date"></div>
-              </div>
-              <p class="form-note">Select an existing boat by name to autofill its details, then update the location or owner for this sighting. Location search automatically sets its coordinates.</p>
-              <button class="primary-button" id="submit-button" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add to the map</span></button>
-              <div class="notice" id="form-notice" aria-live="polite">Connecting to shared storage…</div>
-            </form>
-          </section>
-
-          <section class="panel profile-panel" aria-live="polite">
-            <div class="panel-heading">
-              <div><h2>Boat profile</h2><p>Click a pin to view its details.</p></div>
-              <button class="icon-button profile-close" id="profile-close" aria-label="Close boat profile" title="Close profile" hidden>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div class="empty-profile" id="empty-profile">Select a boat on the map to see its type, hull, location and ownership history.</div>
-            <div class="profile-content" id="profile-content"></div>
-          </section>
-        </aside>
-      </div>
-    </main>
-  </div>
-
-  <dialog id="settings-dialog" aria-labelledby="settings-title">
-    <div class="dialog-inner">
-      <div class="dialog-top">
-        <div><h2 id="settings-title">Shared storage</h2><p>This app is preconfigured to use the same Supabase database on every device.</p></div>
-        <button class="icon-button" id="settings-close" aria-label="Close settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <div class="sql-wrap">
-        <div class="sql-heading"><span>Run/update this in Supabase → SQL Editor</span><button class="copy-button" id="copy-sql" type="button">Copy SQL</button></div>
-        <pre id="setup-sql">create extension if not exists pgcrypto;
+  </style></head><body><div class=shell><header><div class=brand><div><h1 class=brand-title>Boatwatch</h1><div class=brand-subtitle>NS14/MG14 tracker - A Drew Godschalx Industries Creation</div></div></div><div class=header-right><div class=connection aria-live=polite><span class=status-dot id=status-dot></span><span id=connection-label>Connecting to shared boats…</span></div><button class=settings-button id=settings-button aria-label="Database settings" title="Database settings"><svg viewbox="0 0 24 24" fill=none stroke=currentColor stroke-width=1.8 stroke-linecap=round stroke-linejoin=round><circle cx=12 cy=12 r=3 /><path d="m19.4 15 .1.1 1.1.9-1.6 2.8-1.4-.5a7.6 7.6 0 0 1-1.6.9l-.2 1.5h-3.2l-.2-1.5a7.6 7.6 0 0 1-1.6-.9l-1.4.5-1.6-2.8 1.1-.9a7.3 7.3 0 0 1 0-1.8l-1.1-.9 1.6-2.8 1.4.5a7.6 7.6 0 0 1 1.6-.9l.2-1.5h3.2l.2 1.5a7.6 7.6 0 0 1 1.6.9l1.4-.5 1.6 2.8-1.1.9a7.3 7.3 0 0 1 0 1.7Z"/></svg></button></div></header><main><section class=intro><div class=intro-row><div class=brand-name>Boat Map</div><div class=map-meta-tools><div class=stat-pill><strong id=boat-count>0</strong><span>boats on the map</span></div><label class=toolbar-chip>Colour by <select id=color-mode aria-label="Choose pin colour category"><option value=type>Boat type</option><option value=hull>Hull design</option></select></label><label class="toolbar-chip filter-chip"><input type=checkbox class=type-filter value=NS14 checked><span class=filter-key style=background:var(--boat-ns)></span>NS14</label><label class="toolbar-chip filter-chip"><input type=checkbox class=type-filter value=MG14 checked><span class=filter-key style=background:var(--boat-mg)></span>MG14</label><div class=legend-hull id=hull-filters aria-label="Filter by hull design"></div></div></div></section><div class=workspace><section class=map-card aria-label="Boat locations map"><div id=map role=application aria-label="Interactive world map"></div><div class=map-toolbar><div class="toolbar-chip boat-search"><div class="wider"><input id=boat-search type=search placeholder="Find a boat, owner, etc." autocomplete=off aria-label="Search boats by name, owner or sail number" aria-autocomplete=list aria-controls=boat-suggestions aria-expanded=false></div><div class=boat-suggestions id=boat-suggestions role=listbox hidden></div></div></div><div class=map-hint>Search a boat to find it and open its profile. Search a place or click the map to set a sighting location.</div></section><aside class=side-column><section class="panel input-panel"><div class=panel-heading><div><h2>Add a boat sighting</h2><p>Submissions are shared publicly with everyone.</p></div><span class=heading-icon aria-hidden=true><svg viewbox="0 0 24 24" fill=none stroke=currentColor stroke-width=1.8 stroke-linecap=round stroke-linejoin=round><path d="M12 5v14M5 12h14"/><circle cx=12 cy=12 r=9 /></svg></span></div><form id=boat-form><div class=field-grid><div class="field full"><label for=boat-name>Boat name</label><div class=sighting-name-picker><input id=boat-name name=name maxlength=100 placeholder="e.g. Sea Sprite" autocomplete=off aria-autocomplete=list aria-controls=sighting-suggestions aria-expanded=false required><div class=sighting-suggestions id=sighting-suggestions role=listbox hidden></div></div><div class=field-hint>Type a boat name to select an existing boat and reuse its details.</div></div><div class=field><label for=boat-type>Type</label><select id=boat-type name=boat_type required><option value disabled selected>Select</option><option>NS14</option><option>MG14</option></select></div><div class=field><label for=hull-type>Hull design</label><input id=hull-type name=hull_type maxlength=80 placeholder="e.g. Midnight"></div><div class="field full"><label for=location-name>Location</label><div class=location-autocomplete><input id=location-name name=location maxlength=160 placeholder="Search for a club, harbour or town" autocomplete=off aria-autocomplete=list aria-controls=location-suggestions aria-expanded=false required><div class=location-suggestions id=location-suggestions role=listbox hidden></div></div><div class=field-hint id=location-hint aria-live=polite>Choose a search result to set the map position, or click the map.</div><input id=latitude name=lat type=hidden><input id=longitude name=lon type=hidden></div><div class=field><label for=ns-sail-number>NS sail number</label><input id=ns-sail-number name=ns_sail_number maxlength=30 placeholder=Optional></div><div class=field><label for=mg-sail-number>MG sail number</label><input id=mg-sail-number name=mg_sail_number maxlength=30 placeholder=Optional></div><div class="field full"><label for=owner-name>Owner</label><input id=owner-name name=owner maxlength=100 placeholder="First name, Last name"></div><div class="field full"><label for=owner-date>Ownership / sighting date</label><input id=owner-date name=date type=date></div></div><p class=form-note>Select an existing boat by name to autofill its details, then update the location or owner for this sighting. Location search automatically sets its coordinates.</p><button class=primary-button id=submit-button type=submit><svg viewbox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round><path d="M12 5v14M5 12h14"/></svg><span>Add to the map</span></button><div class=notice id=form-notice aria-live=polite>Connecting to shared storage…</div></form></section><section class="panel profile-panel" aria-live=polite><div class=panel-heading><div><h2>Boat profile</h2><p>Click a pin to view its details.</p></div><button class="icon-button profile-close" id=profile-close aria-label="Close boat profile" title="Close profile" hidden><svg viewbox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round><path d="m18 6-12 12M6 6l12 12"/></svg></button></div><div class=empty-profile id=empty-profile>Select a boat on the map to see its type, hull, location and ownership history.</div><div class=profile-content id=profile-content></div></section></aside></div></main></div><dialog id=settings-dialog aria-labelledby=settings-title><div class=dialog-inner><div class=dialog-top><div><h2 id=settings-title>Shared storage</h2><p>This app is preconfigured to use the same Supabase database on every device.</p></div><button class=icon-button id=settings-close aria-label="Close settings"><svg viewbox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round><path d="m18 6-12 12M6 6l12 12"/></svg></button></div><div class=sql-wrap><div class=sql-heading><span>Run/update this in Supabase → SQL Editor</span><button class=copy-button id=copy-sql type=button>Copy SQL</button></div><pre id=setup-sql>create extension if not exists pgcrypto;
 
 create table if not exists public.boats (
   id uuid primary key default gen_random_uuid(),
@@ -378,20 +262,7 @@ create policy "Anyone can view boats"
 create policy "Anyone can add boats"
   on public.boats for insert with check (true);
 create policy "Anyone can update boats"
-  on public.boats for update using (true) with check (true);</pre>
-      </div>
-      <div class="fine-print">These open policies allow anyone with access to this page to read and submit boat records. The app uses a public publishable/anon key, which is visible in the page source; never put a service-role key here. Boat records are shared through Supabase. Protect the project with backups and monitoring.</div>
-      <div class="dialog-actions">
-        <button class="secondary-button" id="settings-cancel" type="button">Cancel</button>
-        <button class="primary-button" id="connect-button" type="button">Done</button>
-      </div>
-    </div>
-  </dialog>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
+  on public.boats for update using (true) with check (true);</pre></div><div class=fine-print>These open policies allow anyone with access to this page to read and submit boat records. The app uses a public publishable/anon key, which is visible in the page source; never put a service-role key here. Boat records are shared through Supabase. Protect the project with backups and monitoring.</div><div class=dialog-actions><button class=secondary-button id=settings-cancel type=button>Cancel</button><button class=primary-button id=connect-button type=button>Done</button></div></div></dialog><script src=https://unpkg.com/leaflet@1.9.4/dist/leaflet.js></script><script src=https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js></script><script src=https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2></script><script>
     (() => {
       "use strict";
 
@@ -406,12 +277,41 @@ create policy "Anyone can update boats"
       const UNKNOWN_COLOR = cssColor("--boat-unknown");
       const HULL_PALETTE = Array.from({ length: 30 }, (_, index) => cssColor(`--hull-color-${index + 1}`));
       const sql = document.getElementById("setup-sql").textContent;
+      const MAP_VIEW_STORAGE_KEY = "boatwatch-map-view";
+      function loadMapView() {
+        try {
+          const saved = JSON.parse(window.localStorage.getItem(MAP_VIEW_STORAGE_KEY));
+          if (!saved || !Number.isFinite(saved.lat) || saved.lat < -90 || saved.lat > 90
+            || !Number.isFinite(saved.lng) || saved.lng < -180 || saved.lng > 180
+            || !Number.isFinite(saved.zoom)) return null;
+          return {
+            center: [saved.lat, saved.lng],
+            zoom: Math.min(19, Math.max(2, saved.zoom))
+          };
+        } catch (error) {
+          console.warn("Could not restore the saved map view.", error);
+          return null;
+        }
+      }
+      const initialMapView = loadMapView();
       const map = L.map("map", {
         worldCopyJump: true,
         minZoom: 2,
         zoomControl: false,
         attributionControl: false
-      }).setView([-25, 135], 3);
+      }).setView(initialMapView?.center || [-25, 135], initialMapView?.zoom ?? 3);
+      map.on("moveend", () => {
+        const center = map.getCenter();
+        try {
+          window.localStorage.setItem(MAP_VIEW_STORAGE_KEY, JSON.stringify({
+            lat: center.lat,
+            lng: center.lng,
+            zoom: map.getZoom()
+          }));
+        } catch (error) {
+          console.warn("Could not save the map view.", error);
+        }
+      });
       L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
         maxZoom: 19,
         attribution: ''
@@ -460,6 +360,8 @@ create policy "Anyone can update boats"
       let selectedBoatId = null;
       const markerById = new Map();
       const tracksById = new Map();
+      const trackLocationMarkers = new Set();
+      const trackDirectionMarkers = new Set();
       const selectedTracks = new Set();
       let hullColors = new Map();
       let geocodeTimer = null;
@@ -529,10 +431,6 @@ create policy "Anyone can update boats"
         return Number.isNaN(parsed.getTime()) ? "Date unknown" : parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
       }
 
-      function currentZoom() {
-        return map.getZoom();
-      }
-
       function colorFor(boat) {
         if (els.mode.value === "hull") return hullColors.get(text(boat.hull_type)) || UNKNOWN_COLOR;
         if (boat.boat_type === "NS14") return NS_COLOR;
@@ -541,17 +439,17 @@ create policy "Anyone can update boats"
       }
 
       function isVisible(boat) {
-        const typeVisible = Array.from(document.querySelectorAll(".type-filter")).some(filter => filter.value === boat.boat_type && filter.checked);
-        const allTypeFilters = Array.from(document.querySelectorAll(".type-filter"));
+        const typeFilters = Array.from(document.querySelectorAll(".type-filter"));
+        const typeVisible = typeFilters.some(filter => filter.value === boat.boat_type && filter.checked);
         const typeFilterVisible = boat.boat_type !== "NS14" && boat.boat_type !== "MG14"
-          ? allTypeFilters.every(filter => filter.checked)
+          ? typeFilters.every(filter => filter.checked)
           : typeVisible;
         const hullFilter = Array.from(els.hullFilters.querySelectorAll("input")).find(filter => filter.value === text(boat.hull_type));
         return typeFilterVisible && (!hullFilter || hullFilter.checked);
       }
 
       function markerIcon(boat) {
-        const named = currentZoom() >= 7;
+        const named = map.getZoom() >= 7;
         const color = colorFor(boat);
         const label = text(boat.name);
         const content = named
@@ -569,6 +467,11 @@ create policy "Anyone can update boats"
         return String(value).replace(/[&<>"']/g, character => ({
           "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
         })[character]);
+      }
+
+      function coordinateLabel(entry) {
+        const point = coordinatePair(entry);
+        return point ? point.map(value => value.toFixed(4)).join(", ") : "Coordinates unknown";
       }
 
       function refreshHullFilters() {
@@ -612,7 +515,7 @@ create policy "Anyone can update boats"
         const track = sortTrack(Array.isArray(boat.track) ? boat.track : []);
         const checked = selectedTracks.has(boat.id) ? "checked" : "";
         els.profile.innerHTML = `
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+          <div class="profile-header">
             <div><h3 class="profile-name">${escapeHtml(text(boat.name))}</h3><span class="profile-tag">${escapeHtml(text(boat.boat_type))}</span></div>
           </div>
           <div class="profile-meta">
@@ -629,19 +532,41 @@ create policy "Anyone can update boats"
           <div class="history-title">Location history</div>
           <ul class="history-list">${buildHistory(track, entry => ({
             primary: text(entry.location),
-            secondary: `${dateLabel(entry.date)} · ${coordinatePair(entry) ? coordinatePair(entry).map(value => value.toFixed(4)).join(", ") : "Coordinates unknown"}`
+            secondary: `${dateLabel(entry.date)} · ${coordinateLabel(entry)}`
           }))}</ul>
-          <label class="track-toggle"><input type="checkbox" id="track-toggle" ${checked} ${track.length < 2 ? "disabled" : ""}>Show movement path${track.length < 2 ? " (add more locations to create a path)" : ""}</label>`;
+          <label class="track-toggle"><input type="checkbox" id="track-toggle" ${checked} ${track.length < 1 ? "disabled" : ""}>Show movement path${track.length < 1 ? " (no location history available)" : ""}</label>`;
         document.getElementById("track-toggle").addEventListener("change", event => {
+          selectedTracks.clear();
           if (event.target.checked) selectedTracks.add(boat.id);
-          else selectedTracks.delete(boat.id);
+          renderMarkers();
           renderTracks();
           const line = tracksById.get(boat.id);
-          if (event.target.checked && line) map.fitBounds(line.getBounds(), { padding: [40, 40], maxZoom: 12 });
+          if (event.target.checked) {
+            if (line) {
+              const bounds = line.getBounds();
+              window.requestAnimationFrame(() => {
+                map.invalidateSize({ pan: false });
+                map.fitBounds(bounds, {
+                  paddingTopLeft: [80, 90],
+                  paddingBottomRight: [80, 48],
+                  maxZoom: 12
+                });
+              });
+            }
+            else {
+              const point = coordinatePair(boat);
+              if (point) map.setView(point, Math.max(map.getZoom(), 12));
+            }
+          }
         });
       }
 
       function clearProfile() {
+        if (selectedTracks.size) {
+          selectedTracks.clear();
+          renderMarkers();
+          renderTracks();
+        }
         selectedBoatId = null;
         els.emptyProfile.style.display = "grid";
         els.profile.style.display = "none";
@@ -772,20 +697,20 @@ create policy "Anyone can update boats"
         renderMarkers();
         renderProfile(boat);
         if (point) {
-          const targetZoom = Math.max(map.getZoom(), 10);
-          const needsMapMove = map.getZoom() !== targetZoom || !map.getCenter().equals(L.latLng(point));
-          if (needsMapMove) {
-            map.once("moveend", () => markerById.get(boat.id)?.openPopup());
-            map.setView(point, targetZoom);
-          } else {
-            markerById.get(boat.id)?.openPopup();
-          }
+          const marker = markerById.get(boat.id);
+          if (!marker) return;
+          markers.zoomToShowLayer(marker, () => {
+            const cluster = markers.getVisibleParent(marker);
+            if (cluster && typeof cluster.spiderfy === "function") cluster.spiderfy();
+            marker.openPopup();
+          });
         }
       }
 
       function renderMarkers() {
         markers.clearLayers();
         markerById.clear();
+        if (selectedTracks.size) return;
         for (const boat of boats) {
           const point = coordinatePair(boat);
           if (!point || !isVisible(boat)) continue;
@@ -817,16 +742,72 @@ create policy "Anyone can update boats"
       function renderTracks() {
         for (const line of tracksById.values()) map.removeLayer(line);
         tracksById.clear();
+        for (const marker of trackLocationMarkers) map.removeLayer(marker);
+        trackLocationMarkers.clear();
+        for (const marker of trackDirectionMarkers) map.removeLayer(marker);
+        trackDirectionMarkers.clear();
         for (const id of selectedTracks) {
           const boat = boats.find(item => item.id === id);
           if (!boat) continue;
-          const points = sortTrack(Array.isArray(boat.track) ? boat.track : [])
-            .map(coordinatePair)
-            .filter(point => point !== null);
-          if (points.length < 2) continue;
-          const line = L.polyline(points, { color: cssColor("--track-color"), weight: 5, opacity: .95 }).addTo(map);
-          line.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong> · movement path`);
-          tracksById.set(id, line);
+          const history = sortTrack(Array.isArray(boat.track) ? boat.track : []);
+          const points = history.map(coordinatePair).filter(point => point !== null);
+          for (const entry of history) {
+            const point = coordinatePair(entry);
+            if (!point) continue;
+            const marker = L.circleMarker(point, {
+              radius: 7,
+              color: cssColor("--marker-border"),
+              weight: 2,
+              fillColor: cssColor("--track-color"),
+              fillOpacity: 1
+            }).addTo(map);
+            marker.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong><br>${escapeHtml(text(entry.location))}<br>${escapeHtml(dateLabel(entry.date))}`);
+            marker.bindTooltip(
+              `<span class="track-location-name">${escapeHtml(text(entry.location))}</span><span class="track-location-date">${escapeHtml(dateLabel(entry.date))}</span>`,
+              { permanent: true, direction: "top", offset: [0, -8], opacity: 0.92, className: "track-location-tooltip" }
+            );
+            trackLocationMarkers.add(marker);
+          }
+          if (points.length >= 2) {
+            const line = L.polyline(points, { color: cssColor("--track-color"), weight: 5, opacity: .95 }).addTo(map);
+            line.bindPopup(`<strong>${escapeHtml(text(boat.name))}</strong> · movement path`);
+            tracksById.set(id, line);
+            const segments = [];
+            let totalDistance = 0;
+            for (let index = 0; index < points.length - 1; index++) {
+              const start = points[index];
+              const end = points[index + 1];
+              const distance = map.distance(start, end);
+              if (!distance) continue;
+              segments.push({ start, end, distance, startDistance: totalDistance });
+              totalDistance += distance;
+            }
+            for (let quarter = 0; quarter < 4 && totalDistance > 0; quarter++) {
+              const targetDistance = totalDistance * ((quarter + 0.5) / 4);
+              const segment = segments.find(item => targetDistance <= item.startDistance + item.distance) || segments.at(-1);
+              const ratio = (targetDistance - segment.startDistance) / segment.distance;
+              const start = segment.start;
+              const end = segment.end;
+              const midpoint = L.latLng(
+                start[0] + (end[0] - start[0]) * ratio,
+                start[1] + (end[1] - start[1]) * ratio
+              );
+              const longitudeDelta = (end[1] - start[1]) * Math.cos(midpoint.lat * Math.PI / 180);
+              const latitudeDelta = end[0] - start[0];
+              const bearing = Math.atan2(longitudeDelta, latitudeDelta) * 180 / Math.PI;
+              const arrow = L.marker(midpoint, {
+                interactive: false,
+                icon: L.divIcon({
+                  className: "track-direction-arrow",
+                  html: `<svg width="18" height="18" viewBox="0 0 18 18" style="transform:rotate(${bearing}deg);overflow:visible"><path d="M9 1 16 16 9 12 2 16Z" fill="${cssColor("--arrow-color")}" /></svg>`,
+                  iconSize: [18, 18],
+                  iconAnchor: [9, 9]
+                }),
+                zIndexOffset: 1000
+              }).addTo(map);
+              trackDirectionMarkers.add(arrow);
+            }
+          }
         }
       }
 
@@ -921,8 +902,7 @@ create policy "Anyone can update boats"
         }
         const track = sortTrack(existing ? existing.track : []);
         track.push({ location, lat, lon, date });
-        const orderedTrack = sortTrack(track);
-        const currentLocation = orderedTrack.at(-1);
+        const currentLocation = track.at(-1);
         const record = {
           ...(existing || {}),
           name,
@@ -935,7 +915,7 @@ create policy "Anyone can update boats"
           lat: currentLocation.lat,
           lon: currentLocation.lon,
           owners,
-          track: orderedTrack,
+          track,
           updated_at: new Date().toISOString()
         };
         els.submit.disabled = true;
@@ -1127,6 +1107,4 @@ create policy "Anyone can update boats"
       document.getElementById("owner-date").value = new Date().toISOString().slice(0, 10);
       initClient();
     })();
-  </script>
-</body>
-</html>
+  </script></body></html>
